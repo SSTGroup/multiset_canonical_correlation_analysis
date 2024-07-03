@@ -325,6 +325,7 @@ def save_joint_isi_and_runtime_results(filename, N, K, T, n_montecarlo, **kwargs
 def write_results_in_latex_table(filename):
     results = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{filename}.npy'),
                       allow_pickle=True).item()
+
     # create pandas dataframe from results
     scenarios = list(results.keys())
     algorithms = list(results[scenarios[0]].keys())
@@ -350,10 +351,13 @@ def write_results_in_latex_table(filename):
     joint_isi_df.to_latex()
     runtime_df = pd.DataFrame(runtime_mean_std_array, columns=table_headings, index=algorithms)
 
+    K = filename[10:]
     joint_isi_df.to_latex(f'joint_isi_{filename}.tex',
-                          caption='joint ISI value (lower is better) for $K=10$ datasets, averaged across 50 runs. '
-                                  'The sumcor algorithm is according to Nielsen \cite{Nielsen2002}, '
-                                  'the other algorithms are according to Kettenring \cite{Kettenring1971}.',
+                          caption=r'joint ISI value (lower is better) for \underline{'
+                                  f'$K={K}$'
+                                  '} datasets, averaged across 50 runs. '
+                                  r'The sumcor algorithm is according to Nielsen \cite{Nielsen2002}, '
+                                  r'the other algorithms are according to Kettenring \cite{Kettenring1971}.',
                           label='tab:jointisiresults',
                           position='!htb')
 
