@@ -270,18 +270,15 @@ def scv_covs_with_rank_R(N, K, R, alpha, beta):
     return scv_cov
 
 
-def save_joint_isi_and_runtime_results(filename, N, K, T, n_montecarlo, **kwargs):
+def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, **kwargs):
     scenarios = ['same_maximum_eigenvalue', 'same_minimum_eigenvalue', 'same_eigenvalues_different_eigenvectors',
                  'same_eigenvalues_permuted_eigenvectors', 'same_eigenvalues_different_sign_eigenvectors',
                  'rank_1', 'rank_K']
 
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
-    results = {}
     for scenario_idx, scenario in enumerate(scenarios):
         print(f'Simulations for {scenario}')
-        joint_isi = np.zeros((len(algorithms), n_montecarlo))
-        runtime = np.zeros((len(algorithms), n_montecarlo))
 
         for run in range(n_montecarlo):
             print(f'Start run {run}...')
@@ -313,17 +310,40 @@ def save_joint_isi_and_runtime_results(filename, N, K, T, n_montecarlo, **kwargs
                 joint_isi[algorithm_idx, run] = _bss_isi(W, A)[1]
                 runtime[algorithm_idx, run] = t_end - t_start
 
+                np.save(Path(Path(__file__).parent.parent,
+                             f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy'),
+                        {'joint_isi': _bss_isi(W, A)[1], 'runtime': t_end - t_start})
+
+
+def save_results_from_multiple_files_in_one_file(K, n_montecarlo):
+    scenarios = ['same_maximum_eigenvalue', 'same_minimum_eigenvalue', 'same_eigenvalues_different_eigenvectors',
+                 'same_eigenvalues_permuted_eigenvectors', 'same_eigenvalues_different_sign_eigenvectors',
+                 'rank_1', 'rank_K']
+
+    algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
+
+    results = {}
+    for scenario_idx, scenario in enumerate(scenarios):
         results[scenario] = {}
         for algorithm_idx, algorithm in enumerate(algorithms):
-            results[scenario][algorithm] = {'joint_isi': joint_isi[algorithm_idx, :],
-                                            'runtime': runtime[algorithm_idx, :]}
+            joint_isi = np.zeros(n_montecarlo)
+            runtime = np.zeros(n_montecarlo)
+            for run in range(n_montecarlo):
+                results_tmp = np.load(Path(Path(__file__).parent.parent,
+                                           f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy'),
+                                      allow_pickle=True).item()
+                runtime[run] = results_tmp['runtime']
+                joint_isi[run] = results_tmp['joint_isi']
 
-    print(f'Save run as simulation_results/{filename}.npy.')
-    np.save(Path(Path(__file__).parent.parent, f'simulation_results/{filename}.npy'), results)
+            results[scenario][algorithm] = {'joint_isi': joint_isi,
+                                            'runtime': runtime}
+
+    print(f'Save run as simulation_results/K_{K}/K_{K}.npy.')
+    np.save(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/K_{K}.npy'), results)
 
 
-def write_results_in_latex_table(filename):
-    results = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{filename}.npy'),
+def write_results_in_latex_table(K):
+    results = np.load(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/K_{K}.npy'),
                       allow_pickle=True).item()
 
     # create pandas dataframe from results
@@ -351,8 +371,7 @@ def write_results_in_latex_table(filename):
     joint_isi_df.to_latex()
     runtime_df = pd.DataFrame(runtime_mean_std_array, columns=table_headings, index=algorithms)
 
-    K = filename[10:]
-    joint_isi_df.to_latex(f'joint_isi_{filename}.tex',
+    joint_isi_df.to_latex(Path(Path(__file__).parent.parent, f'simulation_results/joint_isi_K_{K}.tex'),
                           caption=r'joint ISI value (lower is better) for \underline{'
                                   f'$K={K}$'
                                   '} datasets, averaged across 50 runs. '
@@ -361,5 +380,5 @@ def write_results_in_latex_table(filename):
                           label='tab:jointisiresults',
                           position='!htb')
 
-    runtime_df.to_latex(f'runtime_{filename}.tex')
+    runtime_df.to_latex(Path(Path(__file__).parent.parent, f'simulation_results/runtime_K_{K}.tex'))
 
