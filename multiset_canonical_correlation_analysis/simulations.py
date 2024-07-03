@@ -342,7 +342,7 @@ def save_results_from_multiple_files_in_one_file(K, n_montecarlo):
     np.save(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/K_{K}.npy'), results)
 
 
-def write_results_in_latex_table(K):
+def write_results_in_latex_table(K, n_montecarlo):
     results = np.load(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/K_{K}.npy'),
                       allow_pickle=True).item()
 
@@ -374,7 +374,8 @@ def write_results_in_latex_table(K):
     joint_isi_df.to_latex(Path(Path(__file__).parent.parent, f'simulation_results/joint_isi_K_{K}.tex'),
                           caption=r'joint ISI value (lower is better) for \underline{'
                                   f'$K={K}$'
-                                  '} datasets, averaged across 50 runs. '
+                                  '} datasets, averaged across '
+                                  f'{n_montecarlo} runs. '
                                   r'The sumcor algorithm is according to Nielsen \cite{Nielsen2002}, '
                                   r'the other algorithms are according to Kettenring \cite{Kettenring1971}.',
                           label='tab:jointisiresults',

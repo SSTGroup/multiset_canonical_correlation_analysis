@@ -27,13 +27,15 @@ def test_save_results():
     beta = 0.0
     K = 10  # datasets
 
-    filename = f'results_K_{K}'
+    simulations.save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, alpha=alpha, beta=beta)
 
-    simulations.save_joint_isi_and_runtime_results(filename, N, K, T, n_montecarlo, alpha=alpha, beta=beta)
+
+def test_save_results_from_multiple_files_in_one_file():
+    simulations.save_results_from_multiple_files_in_one_file(10, 50)
 
 
 def test_write_results_in_table():
     K = 10
-    filename = f'results_K_{K}'
+    n_montecarlo = 50
 
-    simulations.write_results_in_latex_table(filename)
+    simulations.write_results_in_latex_table(K, n_montecarlo)
