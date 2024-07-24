@@ -55,15 +55,19 @@ def scv_covs_with_same_maximum_eigenvalue(N, K):
     """
 
     # all generated eigenvalues must be non-negative, and their sum must equal K
-    Lambda = np.zeros((N, K))
-    for n in range(N):
-        lambda_K_1 = -1
-        while lambda_K_1 < 0.2:
+    while True:  # make sure that second smallest EVs of all SCVs are greater than smallest EVs of all SCVs
+        Lambda = np.zeros((N, K))
+        for n in range(N):
             Lambda[n, 0] = (K - 1) / 2
             Lambda[n, 1:K - 2] = np.random.uniform(0.2, 1, K - 3)
             Lambda[n, K - 2] = np.random.uniform(0.05, 0.15)
-            lambda_K_1 = K - np.sum(Lambda[n, :])
-        Lambda[n, K - 1] = lambda_K_1
+            Lambda[n, K - 1] = K - np.sum(Lambda[n, :])
+
+        Lambda = np.sort(Lambda,axis=1)  # sort ascending
+
+        # smallest EVs of all SCVs should be smaller than second smallest SCVs - some margin, otherwise recreate
+        if np.max(Lambda[:, 0]) < np.min(Lambda[:, 1]):
+            break
 
     # create covariance matrices with these eigenvalue profiles
     scv_cov = np.zeros((K, K, N))
@@ -381,5 +385,10 @@ def write_results_in_latex_table(K, n_montecarlo):
                           label='tab:jointisiresults',
                           position='!htb')
 
-    runtime_df.to_latex(Path(Path(__file__).parent.parent, f'simulation_results/runtime_K_{K}.tex'))
-
+    runtime_df.to_latex(Path(Path(__file__).parent.parent, f'simulation_results/runtime_K_{K}.tex'),
+                        caption=r'runtime in seconds (lower is better) for \underline{'
+                                f'$K={K}$'
+                                '} datasets, averaged across '
+                                f'{n_montecarlo} runs.',
+                        label='tab:runtimeresults',
+                        position='!htb')
