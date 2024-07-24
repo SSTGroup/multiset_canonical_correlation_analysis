@@ -5,14 +5,15 @@ from .. import visualization
 def test_scv_covs_with_same_maximum_eigenvalue():
     N = 5
     K = 10
-    simulations.scv_covs_with_same_maximum_eigenvalue(N, K)
+    scv_cov = simulations.scv_covs_with_same_maximum_eigenvalue(N, K)
+    visualization.plot_eigenvalues(scv_cov)
 
 
-def test_generate_rank_R_covariance_matrices():
+def test_scv_covs_with_rank_R():
     N = 5
     K = 10
     R = 1
-    beta = 0.1
+    beta = 0.0
     alpha = [0.9, 0.8, 0.7, 0.6, 0.5]
     scv_cov = simulations.scv_covs_with_rank_R(N, K, R, alpha, beta)
     visualization.plot_eigenvalues(scv_cov)
