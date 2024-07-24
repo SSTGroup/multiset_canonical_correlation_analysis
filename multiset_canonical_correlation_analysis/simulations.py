@@ -54,20 +54,15 @@ def scv_covs_with_same_maximum_eigenvalue(N, K):
 
     """
 
-    # all generated eigenvalues must be non-negative, and their sum must equal K
-    while True:  # make sure that second smallest EVs of all SCVs are greater than smallest EVs of all SCVs
-        Lambda = np.zeros((N, K))
-        for n in range(N):
+    Lambda = np.zeros((N, K))
+    for n in range(N):
+        lambda_K_1 = -1
+        while lambda_K_1 < 0.2:  # this EV should be bigger than 0.2 to not violate minvar
             Lambda[n, 0] = (K - 1) / 2
             Lambda[n, 1:K - 2] = np.random.uniform(0.2, 1, K - 3)
-            Lambda[n, K - 2] = np.random.uniform(0.05, 0.15)
-            Lambda[n, K - 1] = K - np.sum(Lambda[n, :])
-
-        Lambda = np.sort(Lambda, axis=1)  # sort ascending
-
-        # smallest EVs of all SCVs should be smaller than second smallest SCVs - some margin, otherwise recreate
-        if np.max(Lambda[:, 0]) < np.min(Lambda[:, 1]):
-            break
+            Lambda[n, K - 2] = np.random.uniform(0.05, 0.15)  # only this EV should be smaller than 0.2
+            lambda_K_1 = K - np.sum(Lambda[n, :])
+        Lambda[n, K - 1] = lambda_K_1
 
     # create covariance matrices with these eigenvalue profiles
     scv_cov = np.zeros((K, K, N))
