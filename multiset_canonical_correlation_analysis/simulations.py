@@ -63,7 +63,7 @@ def scv_covs_with_same_maximum_eigenvalue(N, K):
             Lambda[n, K - 2] = np.random.uniform(0.05, 0.15)
             Lambda[n, K - 1] = K - np.sum(Lambda[n, :])
 
-        Lambda = np.sort(Lambda,axis=1)  # sort ascending
+        Lambda = np.sort(Lambda, axis=1)  # sort ascending
 
         # smallest EVs of all SCVs should be smaller than second smallest SCVs - some margin, otherwise recreate
         if np.max(Lambda[:, 0]) < np.min(Lambda[:, 1]):
@@ -144,48 +144,6 @@ def scv_covs_with_same_eigenvalues_different_eigenvectors(N, K):
     scv_cov = np.zeros((K, K, N))
     for n in range(N):
         scv_cov[:, :, n] = random_correlation.rvs(Lambda)
-
-    return scv_cov
-
-
-def scv_covs_with_same_eigenvalues_permuted_eigenvectors(N, K):
-    """
-    Return SCV covariance matrices of dimensions (K,K,N) that have the same eigenvalues but permuted eigenvectors
-    U_n = P_n U_1, where P_n is a permutation matrix
-    (to test if genvar can still identify the sources thanks to the permutation).
-
-
-    Parameters
-    ----------
-    N : int
-        number of SCVs
-
-    K : int
-        number of datasets
-
-    Returns
-    -------
-    scv_cov : np.ndarray
-        Array of dimensions (K, K, N) that contains the SCV covariance matrices
-
-    """
-
-    # same eigenvalue profile for all SCVs (generated as for violating minvar)
-    Lambda = np.zeros(K)
-    Lambda[0] = 0.1
-    Lambda[1:K - 1] = np.random.uniform(0.2, 1, K - 2)
-    Lambda[K - 1] = K - np.sum(Lambda)
-
-    # create covariance matrix for 1st SCV
-    scv_cov = np.zeros((K, K, N))
-    scv_cov[:, :, 0] = random_correlation.rvs(Lambda)
-
-    # create N-1 random orthogonal permutation matrices
-    for n in range(1, N):
-        # create random rank K matrix, of which we can use the left EVs as a random orthogonal matrix
-        # R = np.linalg.svd(np.random.randn(K,K))[0]  # rotation matrix
-        P = np.random.permutation(np.eye(K))
-        scv_cov[:, :, n] = P @ scv_cov[:, :, 0] @ P.T
 
     return scv_cov
 
@@ -274,10 +232,7 @@ def scv_covs_with_rank_R(N, K, R, alpha, beta):
     return scv_cov
 
 
-def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, **kwargs):
-    scenarios = ['same_maximum_eigenvalue', 'same_minimum_eigenvalue', 'same_eigenvalues_different_eigenvectors',
-                 'same_eigenvalues_permuted_eigenvectors', 'same_eigenvalues_different_sign_eigenvectors',
-                 'rank_1', 'rank_K']
+def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, **kwargs):
 
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
@@ -293,14 +248,10 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, **kwargs):
                 scv_cov = scv_covs_with_same_minimum_eigenvalue(N, K)
             elif scenario == 'same_eigenvalues_different_eigenvectors':
                 scv_cov = scv_covs_with_same_eigenvalues_different_eigenvectors(N, K)
-            elif scenario == 'same_eigenvalues_permuted_eigenvectors':
-                scv_cov = scv_covs_with_same_eigenvalues_permuted_eigenvectors(N, K)
             elif scenario == 'same_eigenvalues_different_sign_eigenvectors':
                 scv_cov = scv_covs_with_same_eigenvalues_different_sign_eigenvectors(N, K)
-            elif scenario == 'rank_1':
-                scv_cov = scv_covs_with_rank_R(N, K, 1, **kwargs)
-            elif scenario == 'rank_K':
-                scv_cov = scv_covs_with_rank_R(N, K, K, **kwargs)
+            elif scenario[0:5] == 'rank_':
+                scv_cov = scv_covs_with_rank_R(N, K, int(scenario[5]), **kwargs)
             else:
                 raise AssertionError(f"scenario '{scenario}' does not exist")
 
@@ -319,10 +270,9 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, **kwargs):
                         {'joint_isi': _bss_isi(W, A)[1], 'runtime': t_end - t_start})
 
 
-def save_results_from_multiple_files_in_one_file(K, n_montecarlo):
+def save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo):
     scenarios = ['same_maximum_eigenvalue', 'same_minimum_eigenvalue', 'same_eigenvalues_different_eigenvectors',
-                 'same_eigenvalues_permuted_eigenvectors', 'same_eigenvalues_different_sign_eigenvectors',
-                 'rank_1', 'rank_K']
+                 'same_eigenvalues_different_sign_eigenvectors']
 
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
@@ -339,11 +289,34 @@ def save_results_from_multiple_files_in_one_file(K, n_montecarlo):
                 runtime[run] = results_tmp['runtime']
                 joint_isi[run] = results_tmp['joint_isi']
 
-            results[scenario][algorithm] = {'joint_isi': joint_isi,
-                                            'runtime': runtime}
+            results[scenario][algorithm] = {'joint_isi': joint_isi, 'runtime': runtime}
 
-    print(f'Save run as simulation_results/K_{K}/K_{K}.npy.')
-    np.save(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/K_{K}.npy'), results)
+    print(f'Save run as simulation_results/K_{K}/violations_K_{K}.npy.')
+    np.save(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/violations_K_{K}.npy'), results)
+
+
+def save_rank_r_results_from_multiple_files_in_one_file(K, n_montecarlo):
+    scenarios = [f'rank_{r}' for r in range(1, 5)]
+
+    algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
+
+    results = {}
+    for scenario_idx, scenario in enumerate(scenarios):
+        results[scenario] = {}
+        for algorithm_idx, algorithm in enumerate(algorithms):
+            joint_isi = np.zeros(n_montecarlo)
+            runtime = np.zeros(n_montecarlo)
+            for run in range(n_montecarlo):
+                results_tmp = np.load(Path(Path(__file__).parent.parent,
+                                           f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy'),
+                                      allow_pickle=True).item()
+                runtime[run] = results_tmp['runtime']
+                joint_isi[run] = results_tmp['joint_isi']
+
+            results[scenario][algorithm] = {'joint_isi': joint_isi, 'runtime': runtime}
+
+    print(f'Save run as simulation_results/K_{K}/rank_r_K_{K}.npy.')
+    np.save(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/rank_r_K_{K}.npy'), results)
 
 
 def write_results_in_latex_table(K, n_montecarlo):

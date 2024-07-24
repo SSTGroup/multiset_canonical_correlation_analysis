@@ -26,12 +26,14 @@ def test_save_results():
     alpha = [0.9, 0.8, 0.7, 0.6, 0.5]
     beta = 0.0
     K = 10  # datasets
+    simulations.save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, alpha=alpha, beta=beta)
 
-    simulations.save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, alpha=alpha, beta=beta)
 
+def test_save_violation_results_from_multiple_files_in_one_file():
+    simulations.save_violation_results_from_multiple_files_in_one_file(10, 50)
 
-def test_save_results_from_multiple_files_in_one_file():
-    simulations.save_results_from_multiple_files_in_one_file(10, 50)
+def test_save_rank_r_results_from_multiple_files_in_one_file():
+    simulations.save_rank_r_results_from_multiple_files_in_one_file(10, 50)
 
 
 def test_write_results_in_table():
