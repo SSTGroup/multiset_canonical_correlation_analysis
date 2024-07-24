@@ -246,7 +246,7 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, **kwarg
             elif scenario == 'same_eigenvalues_different_sign_eigenvectors':
                 scv_cov = scv_covs_with_same_eigenvalues_different_sign_eigenvectors(N, K)
             elif scenario[0:5] == 'rank_':
-                scv_cov = scv_covs_with_rank_R(N, K, int(scenario[5]), **kwargs)
+                scv_cov = scv_covs_with_rank_R(N, K, int(scenario[5:]), **kwargs)
             else:
                 raise AssertionError(f"scenario '{scenario}' does not exist")
 
@@ -291,7 +291,7 @@ def save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo):
 
 
 def save_rank_r_results_from_multiple_files_in_one_file(K, n_montecarlo):
-    scenarios = [f'rank_{r}' for r in range(1, 5)]
+    scenarios = [f'rank_{r}' for r in range(1, 11)]
 
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
