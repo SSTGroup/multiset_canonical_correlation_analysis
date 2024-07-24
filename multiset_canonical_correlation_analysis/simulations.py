@@ -290,8 +290,8 @@ def save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo):
     np.save(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/violations_K_{K}.npy'), results)
 
 
-def save_rank_r_results_from_multiple_files_in_one_file(K, n_montecarlo):
-    scenarios = [f'rank_{r}' for r in range(1, 11)]
+def save_different_R_results_from_multiple_files_in_one_file(K, n_montecarlo):
+    scenarios = [f'rank_{R}' for R in range(1, 11)]
 
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
@@ -310,8 +310,8 @@ def save_rank_r_results_from_multiple_files_in_one_file(K, n_montecarlo):
 
             results[scenario][algorithm] = {'joint_isi': joint_isi, 'runtime': runtime}
 
-    print(f'Save run as simulation_results/K_{K}/rank_r_K_{K}.npy.')
-    np.save(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/rank_r_K_{K}.npy'), results)
+    print(f'Save run as simulation_results/K_{K}/different_R_K_{K}.npy.')
+    np.save(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/different_R_K_{K}.npy'), results)
 
 
 def write_results_in_latex_table(K, n_montecarlo):
