@@ -41,3 +41,9 @@ def test_plot_results_with_errorbars_for_different_r():
     K = 10
     n_montecarlo = 50
     visualization.plot_results_with_errorbars_for_different_r(K, n_montecarlo)
+def test_write_results_in_table():
+    K = 10
+    n_montecarlo = 50
+
+    visualization.write_results_in_latex_table(K, n_montecarlo)
+

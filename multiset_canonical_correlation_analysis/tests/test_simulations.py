@@ -38,8 +38,3 @@ def test_save_different_R_results_from_multiple_files_in_one_file():
     simulations.save_different_R_results_from_multiple_files_in_one_file(10, 50)
 
 
-def test_write_results_in_table():
-    K = 10
-    n_montecarlo = 50
-
-    simulations.write_results_in_latex_table(K, n_montecarlo)
