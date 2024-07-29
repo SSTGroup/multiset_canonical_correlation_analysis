@@ -134,7 +134,7 @@ def scv_covs_with_same_eigenvalues_different_eigenvectors(N, K):
     Lambda[1:K - 1] = np.random.uniform(0.2, 1, K - 2)
     Lambda[K - 1] = K - np.sum(Lambda)
 
-    # create N random orthogonal permutation matrices
+    # create N random SCV covariance matrices
     scv_cov = np.zeros((K, K, N))
     for n in range(N):
         scv_cov[:, :, n] = random_correlation.rvs(Lambda)

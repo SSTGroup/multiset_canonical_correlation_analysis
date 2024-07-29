@@ -6,7 +6,7 @@ import pandas as pd
 from .helpers import calculate_eigenvalues_from_ccv_covariance_matrices
 
 
-def plot_results_with_errorbars_for_violations(K, n_montecarlo):
+def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
     results = np.load(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/violations_K_{K}.npy'),
                       allow_pickle=True).item()
 
@@ -26,29 +26,38 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo):
             joint_isi_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['joint_isi']
             runtime_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['runtime']
 
-    plt.figure(figsize=(8, 4))
-    plt.title(f'joint ISI for the different experiments (K={K})')
-
+    plt.figure(figsize=(6, 3))
     for algorithm in algorithms:
         plt.errorbar(np.arange(n_scenarios), np.mean(joint_isi_per_algorithm[algorithm], axis=1),
                      np.std(joint_isi_per_algorithm[algorithm], axis=1),
-                     linestyle=':', fmt='o', capsize=3.5, label=f'{algorithm}')
-    plt.xticks(np.arange(n_scenarios), scenario_labels, rotation=90)
+                     linestyle=':', fmt='o', capsize=3, label=f'{algorithm}')
+    plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12)
     plt.ylim([-0.1, 0.6])
-    plt.legend()
-    plt.tight_layout()
+    plt.yticks([0, 0.25, 0.5])
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-    plt.figure(figsize=(8, 4))
-    plt.title(f'runtime in seconds for the different experiments (K={K})')
+    if save:
+        plt.tight_layout()
+        plt.savefig(f'joint_ISI_K_{K}.pdf')
+    else:
+        plt.title(f'joint ISI for the different experiments (K={K})')
+        plt.tight_layout()
 
+    plt.figure(figsize=(6, 3))
     for algorithm in algorithms:
         plt.errorbar(np.arange(n_scenarios), np.mean(runtime_per_algorithm[algorithm], axis=1),
                      np.std(runtime_per_algorithm[algorithm], axis=1),
                      linestyle=':', fmt='o', capsize=3.5, label=f'{algorithm}')
-    plt.xticks(np.arange(n_scenarios), scenario_labels, rotation=90)
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
+    plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12)
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    if save:
+        plt.tight_layout()
+        plt.savefig(f'runtime_K_{K}.pdf')
+    else:
+        plt.title(f'runtime in seconds for the different experiments (K={K})')
+        plt.tight_layout()
+        plt.show()
 
 
 def plot_results_with_errorbars_for_different_R(K, n_montecarlo):
@@ -95,14 +104,19 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo):
     plt.show()
 
 
-def plot_eigenvalues(scv_cov, show=True):
-    plt.figure()
+def plot_eigenvalues(scv_cov, show=True, filename=None):
+    plt.figure(figsize=(5,2.5))
     Lambda = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov)
     Lambda = Lambda[:, ::-1]  # sort descending
 
     for n in range(scv_cov.shape[2]):
-        plt.plot(Lambda[n, :], '*:', label=f'C_{n + 1}')
+        plt.plot(np.arange(1, Lambda.shape[1] + 1), Lambda[n, :], 'o:', label=r'$\mathbf{\lambda}_' + f'{n + 1}' + r'$')
+    plt.xticks(np.arange(1, Lambda.shape[1] + 1))
     plt.legend()
+    plt.tight_layout()
+    if filename is not None:
+        show = False
+        plt.savefig(f'{filename}.pdf')
     if show:
         plt.show()
 
