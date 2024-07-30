@@ -172,8 +172,10 @@ def mcca_maxvar_kettenring(X):
 
         # calc v_n as first eigvec of EVD(H_n R H_n), where H_1 = I
         eigval, eigvec = eigh(H_n @ C_yy @ H_n)
-        # eigvals and eigvecs are sorted in descending order
-        V[:, n] = eigvec[:, -1]
+        # eigvals and eigvecs should be sorted in descending order
+        eigvec = eigvec[:, ::-1]
+        # eigenvector corresponding to largest eigenvalue
+        V[:, n] = eigvec[:, 0]
 
         # normalize each v_n^[k] -> w_n[k] has unit norm
         for k in range(K):
@@ -257,8 +259,10 @@ def mcca_minvar_kettenring(X):
 
         # calc v_n as first eigvec of EVD(H_n R H_n), where H_1 = I
         eigval, eigvec = eigh(H_n @ C_yy @ H_n)
-        # eigvals and eigvecs are sorted in descending order. Eigenvector corresponding to last non-zero eigenvalue
-        V[:, n] = eigvec[:, -(N - n) * K]
+        # eigvals and eigvecs should be sorted in descending order
+        eigvec = eigvec[:, ::-1]
+        # eigenvector corresponding to smallest non-zero eigenvalue
+        V[:, n] = eigvec[:, N * K - n * K - 1]
 
         # normalize each v_n^[k] -> w_n[k] has unit norm
         for k in range(K):
