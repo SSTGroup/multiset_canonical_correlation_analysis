@@ -300,7 +300,7 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
                     B_n = block_diag(*V_tilde[:, n, :].T).T
                     R_n = B_n.T @ C_yy @ B_n  # K x K covariance matrix of nth CCV
 
-            if np.sum(np.abs(theta_n[:, iter] - theta_n[:, iter - 1])) < eps or iter == max_iter:  # eq. (12.9)
+            if np.sum(np.abs(theta_n[:, iter] - theta_n[:, iter - 1])) < eps:  # eq. (12.9)
                 if verbose:
                     print(f'Stopping for the {n}th CCV after {iter} iterations')
                 break
