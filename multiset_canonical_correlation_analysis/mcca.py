@@ -258,7 +258,7 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
     C_yy = np.cov(Y_concat, ddof=0)
 
     # initialize transformation matrices (that would transform Y)
-    V_tilde = 1 / np.sqrt(N) * np.ones((N, N, K))
+    V = 1 / np.sqrt(N) * np.ones((N, N, K))
 
     for n in range(N):
         theta_n = np.zeros((K, max_iter))
@@ -268,17 +268,17 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
                     H_n_k = np.eye(N)  # A_j in eq. (12.5c) for the first CCV
                     if algorithm == 'genvar':
                         # init R_n
-                        B_n = block_diag(*V_tilde[:, n, :].T).T
-                        R_n = B_n.T @ C_yy @ B_n  # K x K covariance matrix of nth CCV
+                        V_n = block_diag(*V[:, n, :].T).T
+                        R_n = V_n.T @ C_yy @ V_n  # K x K covariance matrix of nth CCV
                 else:
-                    V_n_1_k = V_tilde[:, 0:n, k]  # C_j on p.445
+                    V_n_1_k = V[:, 0:n, k]  # C_j on p.445
                     H_n_k = np.eye(N) - V_n_1_k @ np.linalg.inv(V_n_1_k.T @ V_n_1_k) @ V_n_1_k.T  # A_j in eq. (12.5c)
 
                 # [ C_yy^[k,1] m_n^[1], ..., C_yy^[k,k-1] m_n^[k-1], C_yy^[k,k+1] m_n^[k+1], ..., C_yy^[k,K] m_n^[K] ]
                 N_n_k = []
                 for l in range(K):
                     if l != k:
-                        N_n_k.append(C_yy[k * N: (k + 1) * N, l * N: (l + 1) * N] @ V_tilde[:, n, l])
+                        N_n_k.append(C_yy[k * N: (k + 1) * N, l * N: (l + 1) * N] @ V[:, n, l])
                 N_n_k = np.array(N_n_k).T  # called N_j in Kettenring's paper p.445, his j is our k
 
                 if algorithm == 'ssqcor':
@@ -291,14 +291,17 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
                     raise ValueError("'algorithm' must be 'ssqcor' or 'genvar'")
 
                 # we can perform EVD of H_n F_n H_n, as we are just interested in the leading eigenvector
-                lambda_n_k, V_n_k = np.linalg.eigh(H_n_k @ F_n_k @ H_n_k)
-                V_tilde[:, n, k] = V_n_k[:, -1]  # -1 as the eigenvalues are ascending -> last is largest
-                theta_n[k, iter] = 1 + lambda_n_k[-1]
+                eigval, eigvec = np.linalg.eigh(H_n_k @ F_n_k @ H_n_k)
+                # eigvals and eigvecs should be sorted in descending order
+                eigval = eigval[::-1]
+                eigvec = eigvec[:, ::-1]
+                V[:, n, k] = eigvec[:, 0]
+                theta_n[k, iter] = 1 + eigval[0]
 
                 if algorithm == 'genvar':
                     # update R_n
-                    B_n = block_diag(*V_tilde[:, n, :].T).T
-                    R_n = B_n.T @ C_yy @ B_n  # K x K covariance matrix of nth CCV
+                    V_n = block_diag(*V[:, n, :].T).T
+                    R_n = V_n.T @ C_yy @ V_n  # K x K covariance matrix of nth CCV
 
             if np.sum(np.abs(theta_n[:, iter] - theta_n[:, iter - 1])) < eps:  # eq. (12.9)
                 if verbose:
@@ -308,7 +311,7 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
     # find transformation matrices for X^[k] instead of Y^[k]
     M = np.zeros((N, N, K))
     for k in range(K):
-        M[:, :, k] = np.linalg.inv(sqrtm(np.cov(X[:, :, k], ddof=0))) @ V_tilde[:, :, k]
+        M[:, :, k] = np.linalg.inv(sqrtm(np.cov(X[:, :, k], ddof=0))) @ V[:, :, k]
 
     # calculate canonical variates (they already have unit variance)
     Epsilon = np.zeros_like(X)
