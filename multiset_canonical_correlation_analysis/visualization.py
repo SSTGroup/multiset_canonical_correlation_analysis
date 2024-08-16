@@ -26,14 +26,14 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
             joint_isi_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['joint_isi']
             runtime_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['runtime']
 
-    plt.figure(figsize=(6, 3))
+    plt.figure(figsize=(6, 4))
     for algorithm in algorithms:
         plt.errorbar(np.arange(n_scenarios), np.mean(joint_isi_per_algorithm[algorithm], axis=1),
                      np.std(joint_isi_per_algorithm[algorithm], axis=1),
                      linestyle=':', fmt='o', capsize=3, label=f'{algorithm}')
-    plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12)
     plt.ylim([-0.1, 0.6])
     plt.yticks([0, 0.25, 0.5])
+    plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12, rotation=90)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     if save:
@@ -43,12 +43,12 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
         plt.title(f'joint ISI for the different experiments (K={K})')
         plt.tight_layout()
 
-    plt.figure(figsize=(6, 3))
+    plt.figure(figsize=(6, 4))
     for algorithm in algorithms:
         plt.errorbar(np.arange(n_scenarios), np.mean(runtime_per_algorithm[algorithm], axis=1),
                      np.std(runtime_per_algorithm[algorithm], axis=1),
                      linestyle=':', fmt='o', capsize=3.5, label=f'{algorithm}')
-    plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12)
+    plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12, rotation=90)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     if save:
@@ -60,7 +60,7 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
         plt.show()
 
 
-def plot_results_with_errorbars_for_different_R(K, n_montecarlo):
+def plot_results_with_errorbars_for_different_R(K, n_montecarlo, save=False):
     results = np.load(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/different_R_K_{K}.npy'),
                       allow_pickle=True).item()
 
@@ -78,7 +78,6 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo):
             runtime_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['runtime']
 
     plt.figure(figsize=(8, 4))
-    plt.title(f'joint ISI for the different experiments (K={K})')
 
     for algorithm in algorithms:
         plt.errorbar(scenario_labels, np.mean(joint_isi_per_algorithm[algorithm], axis=1),
@@ -88,7 +87,13 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo):
     plt.xlabel('rank R')
     plt.ylim([-0.1, 0.6])
     plt.legend()
-    plt.tight_layout()
+
+    if save:
+        plt.tight_layout()
+        plt.savefig(f'joint_ISI_K_{K}_different_R.pdf')
+    else:
+        plt.title(f'joint ISI for the different experiments (K={K})')
+        plt.tight_layout()
 
     plt.figure(figsize=(8, 4))
     plt.title(f'runtime in seconds for the different experiments (K={K})')
@@ -100,8 +105,14 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo):
     plt.xticks(scenario_labels, scenario_labels)
     plt.xlabel('rank R')
     plt.legend()
-    plt.tight_layout()
-    plt.show()
+
+    if save:
+        plt.tight_layout()
+        plt.savefig(f'runtime_K_{K}_different_R.pdf')
+    else:
+        plt.title(f'runtime in seconds for the different experiments (K={K})')
+        plt.tight_layout()
+        plt.show()
 
 
 def plot_eigenvalues(scv_cov, show=True, filename=None):
