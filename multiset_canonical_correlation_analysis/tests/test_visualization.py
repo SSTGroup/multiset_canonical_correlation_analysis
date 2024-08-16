@@ -1,34 +1,24 @@
-import numpy as np
-from pathlib import Path
-
-import matplotlib.pyplot as plt
-
-from .. import visualization
+from .. import simulations, visualization
 
 
-def test_plot_joint_isi_over_R():
-    filename = 'K_10/K_10'
-    results = np.load(Path(Path(__file__).parent.parent.parent, f'simulation_results/{filename}.npy'),
-                      allow_pickle=True).item()
-    visualization.plot_joint_isi_over_R(results)
+def test_plot_eigenvalues():
+    N = 5
+    K = 100
+    beta = 0.0
+    alpha = [0.9, 0.85, 0.8, 0.75, 0.7]
 
+    scv_cov = simulations.scv_covs_with_same_maximum_eigenvalue(N, K)
+    visualization.plot_eigenvalues(scv_cov, filename=f'evs_K_{K}_same_lambda_max')
 
-def test_quick_and_dirty_plot2():
-    results = np.load(Path(Path(__file__).parent.parent.parent, f'simulation_results/K_100/K_100.npy'),
-                      allow_pickle=True).item()
-    results_rank_1 = results['rank_1']
-    R_range = [1]
+    scv_cov = simulations.scv_covs_with_same_minimum_eigenvalue(N, K)
+    visualization.plot_eigenvalues(scv_cov, filename=f'evs_K_{K}_same_lambda_min')
 
-    plt.figure()
-    for key in ['maxvar', 'minvar', 'genvar', 'ssqcor', 'sumcor', 'ivag']:
-        plt.errorbar(R_range, np.mean(results_rank_1[key]['joint_isi']),
-                     np.std(results_rank_1[key]['joint_isi']),
-                     linestyle=':', fmt='s', capsize=3, label=f'{key}')
-    plt.xticks([1])
-    plt.xlabel(r'R')
-    plt.ylabel('joint ISI')
-    plt.legend()
-    plt.show()
+    scv_cov = simulations.scv_covs_with_rank_R(N, K, 1, alpha, beta)
+    visualization.plot_eigenvalues(scv_cov, filename=f'evs_K_{K}_rank_1')
+
+    scv_cov = simulations.scv_covs_with_rank_R(N, K, K, alpha, beta)
+    visualization.plot_eigenvalues(scv_cov, filename=f'evs_K_{K}_rank_{K}')
+
 
 def test_plot_results_with_errorbars():
     K = 10
