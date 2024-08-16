@@ -30,20 +30,20 @@ def test_quick_and_dirty_plot2():
     plt.legend()
     plt.show()
 
-
-def test_plot_results_with_errorbars_for_violations():
+def test_plot_results_with_errorbars():
     K = 10
     n_montecarlo = 50
-    visualization.plot_results_with_errorbars_for_violations(K, n_montecarlo)
+    save = False
+
+    simulations.save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo)
+    visualization.plot_results_with_errorbars_for_violations(K, n_montecarlo, save)
+
+    # simulations.save_different_R_results_from_multiple_files_in_one_file(K, n_montecarlo)
+    # visualization.plot_results_with_errorbars_for_different_R(K, n_montecarlo, save)
 
 
-def test_plot_results_with_errorbars_for_different_r():
-    K = 10
-    n_montecarlo = 50
-    visualization.plot_results_with_errorbars_for_different_r(K, n_montecarlo)
 def test_write_results_in_table():
     K = 10
     n_montecarlo = 50
 
     visualization.write_results_in_latex_table(K, n_montecarlo)
-
