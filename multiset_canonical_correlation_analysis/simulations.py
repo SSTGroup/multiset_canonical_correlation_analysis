@@ -95,9 +95,12 @@ def scv_covs_with_same_minimum_eigenvalue(N, K):
     # all generated eigenvalues must be non-negative, and their sum must equal K
     Lambda = np.zeros((N, K))
     for n in range(N):
-        Lambda[n, 0] = 0.1
-        Lambda[n, 1:K - 1] = np.random.uniform(0.2, 1, K - 2)
-        Lambda[n, K - 1] = K - np.sum(Lambda[n, :])
+        lambda_K_1 = -1
+        while lambda_K_1 < 0:  # this EV should be bigger than 0 to have all positive eigenvalues
+            Lambda[n, 0] = 0.1
+            Lambda[n, 1:K - 1] = np.random.uniform(0.2, 1, K - 2)
+            lambda_K_1 = K - np.sum(Lambda[n, :])
+        Lambda[n, K - 1] = lambda_K_1
 
     # create covariance matrices with these eigenvalue profiles
     scv_cov = np.zeros((K, K, N))
