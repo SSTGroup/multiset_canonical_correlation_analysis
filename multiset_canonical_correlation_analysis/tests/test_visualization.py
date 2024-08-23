@@ -28,8 +28,8 @@ def test_plot_results_with_errorbars():
     simulations.save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo)
     visualization.plot_results_with_errorbars_for_violations(K, n_montecarlo, save)
 
-    # simulations.save_different_R_results_from_multiple_files_in_one_file(K, n_montecarlo)
-    # visualization.plot_results_with_errorbars_for_different_R(K, n_montecarlo, save)
+    simulations.save_different_R_results_from_multiple_files_in_one_file(K, n_montecarlo)
+    visualization.plot_results_with_errorbars_for_different_R(K, n_montecarlo, save)
 
 
 def test_write_results_in_table():
