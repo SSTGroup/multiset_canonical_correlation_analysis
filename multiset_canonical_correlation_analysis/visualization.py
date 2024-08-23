@@ -26,14 +26,14 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
             joint_isi_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['joint_isi']
             runtime_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['runtime']
 
-    plt.figure(figsize=(6, 4))
+    plt.figure(figsize=(5, 3.5))
     for algorithm in algorithms:
         plt.errorbar(np.arange(n_scenarios), np.mean(joint_isi_per_algorithm[algorithm], axis=1),
                      np.std(joint_isi_per_algorithm[algorithm], axis=1),
-                     linestyle=':', fmt='o', capsize=3, label=f'{algorithm}')
-    plt.ylim([-0.1, 0.6])
-    plt.yticks([0, 0.25, 0.5])
+                     linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12, rotation=90)
+    plt.ylim([-0.01, 1.01])
+    # plt.yticks([0, 0.25, 0.5])
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     if save:
@@ -47,7 +47,7 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
     for algorithm in algorithms:
         plt.errorbar(np.arange(n_scenarios), np.mean(runtime_per_algorithm[algorithm], axis=1),
                      np.std(runtime_per_algorithm[algorithm], axis=1),
-                     linestyle=':', fmt='o', capsize=3.5, label=f'{algorithm}')
+                     linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12, rotation=90)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
@@ -82,7 +82,7 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo, save=False):
     for algorithm in algorithms:
         plt.errorbar(scenario_labels, np.mean(joint_isi_per_algorithm[algorithm], axis=1),
                      np.std(joint_isi_per_algorithm[algorithm], axis=1),
-                     linestyle=':', fmt='o', capsize=3.5, label=f'{algorithm}')
+                     linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     plt.xticks(scenario_labels, scenario_labels)
     plt.xlabel('rank R')
     plt.ylim([-0.1, 0.6])
@@ -101,7 +101,7 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo, save=False):
     for algorithm in algorithms:
         plt.errorbar(scenario_labels, np.mean(runtime_per_algorithm[algorithm], axis=1),
                      np.std(runtime_per_algorithm[algorithm], axis=1),
-                     linestyle=':', fmt='o', capsize=3.5, label=f'{algorithm}')
+                     linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     plt.xticks(scenario_labels, scenario_labels)
     plt.xlabel('rank R')
     plt.legend()
@@ -116,13 +116,16 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo, save=False):
 
 
 def plot_eigenvalues(scv_cov, show=True, filename=None):
-    plt.figure(figsize=(5,2.5))
+    plt.figure(figsize=(2.5, 2.5))
     Lambda = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov)
     Lambda = Lambda[:, ::-1]  # sort descending
 
     for n in range(scv_cov.shape[2]):
-        plt.plot(np.arange(1, Lambda.shape[1] + 1), Lambda[n, :], 'o:', label=r'$\mathbf{\lambda}_' + f'{n + 1}' + r'$')
+        plt.plot(np.arange(1, Lambda.shape[1] + 1), Lambda[n, :], 'D:', markersize=2.5, lw=1,
+                 label=r'$\mathbf{\lambda}_' + f'{n + 1}' + r'$')
     plt.xticks(np.arange(1, Lambda.shape[1] + 1))
+    plt.ylim([-0.1, 10.1])
+    plt.yticks([0, 2, 4, 6, 8, 10])
     plt.legend()
     plt.tight_layout()
     if filename is not None:
