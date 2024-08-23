@@ -33,7 +33,7 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
                      linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12, rotation=90)
     plt.ylim([-0.01, 1.01])
-    # plt.yticks([0, 0.25, 0.5])
+    plt.yticks(np.arange(0, 1.01, 0.2), fontsize=12)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     if save:
@@ -49,6 +49,7 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
                      np.std(runtime_per_algorithm[algorithm], axis=1),
                      linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12, rotation=90)
+    plt.yticks(np.arange(0, 1.01, 0.2), fontsize=12)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     if save:
@@ -77,16 +78,17 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo, save=False):
             joint_isi_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['joint_isi']
             runtime_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['runtime']
 
-    plt.figure(figsize=(8, 4))
+    plt.figure(figsize=(5, 2.5))
 
     for algorithm in algorithms:
         plt.errorbar(scenario_labels, np.mean(joint_isi_per_algorithm[algorithm], axis=1),
                      np.std(joint_isi_per_algorithm[algorithm], axis=1),
                      linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
-    plt.xticks(scenario_labels, scenario_labels)
-    plt.xlabel('rank R')
-    plt.ylim([-0.1, 0.6])
-    plt.legend()
+    plt.xticks(scenario_labels, scenario_labels, fontsize=12)
+    plt.xlabel(r'rank $R$', fontsize=12)
+    plt.ylim([-0.01, 1.01])
+    plt.yticks(np.arange(0, 1.01, 0.2), fontsize=12)
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     if save:
         plt.tight_layout()
