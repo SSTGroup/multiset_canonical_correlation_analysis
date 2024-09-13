@@ -145,6 +145,38 @@ def scv_covs_with_same_eigenvalues_different_eigenvectors(N, K):
     return scv_cov
 
 
+def scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, R, alpha, beta):
+    """
+    Return SCV covariance matrices of dimensions (K,K,N) that have the same eigenvalues but different eigenvectors (to
+    test if genvar can still identify the sources thanks to the eigenvectors).
+
+
+    Parameters
+    ----------
+    N : int
+        number of SCVs
+
+    K : int
+        number of datasets
+
+    Returns
+    -------
+    scv_cov : np.ndarray
+        Array of dimensions (K, K, N) that contains the SCV covariance matrices
+
+    """
+
+    # same eigenvalue profile for all SCVs (generated as for rank K)
+    Lambda = calculate_eigenvalues_from_ccv_covariance_matrices(scv_covs_with_rank_R(N, K, R, alpha, beta))[0, :]
+
+    # create N random SCV covariance matrices
+    scv_cov = np.zeros((K, K, N))
+    for n in range(N):
+        scv_cov[:, :, n] = random_correlation.rvs(Lambda)
+
+    return scv_cov
+
+
 def scv_covs_with_same_eigenvalues_different_sign_eigenvectors(N, K):
     """
     Return SCV covariance matrices of dimension (K,K,N) that have the same eigenvalues and eigenvectors just differing
@@ -245,6 +277,11 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, **kwarg
                 scv_cov = scv_covs_with_same_minimum_eigenvalue(N, K)
             elif scenario == 'same_eigenvalues_different_eigenvectors':
                 scv_cov = scv_covs_with_same_eigenvalues_different_eigenvectors(N, K)
+            elif scenario == 'same_eigenvalues_different_eigenvectors_rank_1':
+                scv_cov = scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, 1, **kwargs)
+            elif scenario == 'same_eigenvalues_different_eigenvectors_rank_K':
+                scv_cov = scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, K, alpha=[1, 1, 1, 1, 1],
+                                                                                       beta=0.0)
             elif scenario == 'same_eigenvalues_different_sign_eigenvectors':
                 scv_cov = scv_covs_with_same_eigenvalues_different_sign_eigenvectors(N, K)
             elif scenario[0:5] == 'rank_':
@@ -262,14 +299,16 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, **kwarg
                 joint_isi[algorithm_idx, run] = _bss_isi(W, A)[1]
                 runtime[algorithm_idx, run] = t_end - t_start
 
-                np.save(Path(Path(__file__).parent.parent,
-                             f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy'),
-                        {'joint_isi': _bss_isi(W, A)[1], 'runtime': t_end - t_start})
+                filename = Path(Path(__file__).parent.parent,
+                                f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy')
+                np.save(filename, {'joint_isi': _bss_isi(W, A)[1], 'runtime': t_end - t_start})
 
 
 def save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo):
-    scenarios = ['same_maximum_eigenvalue', 'same_minimum_eigenvalue', 'same_eigenvalues_different_eigenvectors',
-                 'same_eigenvalues_different_sign_eigenvectors']
+    scenarios = ['same_maximum_eigenvalue', 'same_minimum_eigenvalue',
+                 'same_eigenvalues_different_eigenvectors',
+                 'same_eigenvalues_different_eigenvectors_rank_K', 'same_eigenvalues_different_eigenvectors_rank_1'
+                 ]
 
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
@@ -280,9 +319,9 @@ def save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo):
             joint_isi = np.zeros(n_montecarlo)
             runtime = np.zeros(n_montecarlo)
             for run in range(n_montecarlo):
-                results_tmp = np.load(Path(Path(__file__).parent.parent,
-                                           f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy'),
-                                      allow_pickle=True).item()
+                filename = Path(Path(__file__).parent.parent,
+                                f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy')
+                results_tmp = np.load(filename, allow_pickle=True).item()
                 runtime[run] = results_tmp['runtime']
                 joint_isi[run] = results_tmp['joint_isi']
 
@@ -304,9 +343,9 @@ def save_different_R_results_from_multiple_files_in_one_file(K, n_montecarlo):
             joint_isi = np.zeros(n_montecarlo)
             runtime = np.zeros(n_montecarlo)
             for run in range(n_montecarlo):
-                results_tmp = np.load(Path(Path(__file__).parent.parent,
-                                           f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy'),
-                                      allow_pickle=True).item()
+                filename = Path(Path(__file__).parent.parent,
+                                f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy')
+                results_tmp = np.load(filename, allow_pickle=True).item()
                 runtime[run] = results_tmp['runtime']
                 joint_isi[run] = results_tmp['joint_isi']
 
@@ -314,4 +353,3 @@ def save_different_R_results_from_multiple_files_in_one_file(K, n_montecarlo):
 
     print(f'Save run as simulation_results/K_{K}/different_R_K_{K}.npy.')
     np.save(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/different_R_K_{K}.npy'), results)
-

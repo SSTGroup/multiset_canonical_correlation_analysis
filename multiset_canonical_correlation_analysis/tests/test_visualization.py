@@ -20,7 +20,7 @@ def test_plot_eigenvalues():
     visualization.plot_eigenvalues(scv_cov, filename=f'evs_K_{K}_rank_{K}')
 
 
-def test_plot_results_with_errorbars():
+def test_plot_results():
     K = 10
     n_montecarlo = 50
     save = False

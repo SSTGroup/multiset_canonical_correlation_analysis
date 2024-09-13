@@ -12,8 +12,10 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
 
     # create pandas dataframe from results
     scenarios = list(results.keys())
-    scenario_labels = ['same $\lambda_{\mathrm{max}}$', 'same $\lambda_{\mathrm{min}}$', r'same $\mathbf{\lambda}$',
-                       r'$\mathbf{C}_n = \mathbf{D}_n \mathbf{C}_1 \mathbf{D}_n$']
+    scenario_labels = ['same $\lambda_{\mathrm{max}}$', 'same $\lambda_{\mathrm{min}}$',
+                       r'same $\mathbf{\lambda}$',
+                       r'same $\mathbf{\lambda}$ (rank $K$)', r'same $\mathbf{\lambda}$ (rank $1$)'
+    ]
     n_scenarios = len(scenario_labels)
 
     algorithms = list(results[scenarios[0]].keys())
