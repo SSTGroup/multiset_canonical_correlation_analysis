@@ -15,7 +15,7 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
     scenario_labels = ['same $\lambda_{\mathrm{max}}$', 'same $\lambda_{\mathrm{min}}$',
                        r'same $\mathbf{\lambda}$',
                        r'same $\mathbf{\lambda}$ (rank $K$)', r'same $\mathbf{\lambda}$ (rank $1$)'
-    ]
+                       ]
     n_scenarios = len(scenario_labels)
 
     algorithms = list(results[scenarios[0]].keys())
@@ -36,6 +36,7 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
     plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12, rotation=90)
     plt.ylim([-0.01, 1.01])
     plt.yticks(np.arange(0, 1.01, 0.2), fontsize=12)
+    plt.ylabel('jISI', fontsize=12)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     if save:
@@ -55,6 +56,7 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
     plt.yticks(np.arange(0, 2.01, 0.5), fontsize=12)
     # plt.ylim([-2, 202])
     # plt.yticks(np.arange(0, 200.1, 50), fontsize=12)
+    plt.ylabel('Runtime in seconds', fontsize=12)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     if save:
@@ -91,8 +93,9 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo, save=False):
                      linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     plt.xticks(scenario_labels, scenario_labels, fontsize=12)
     plt.xlabel(r'rank $R$', fontsize=12)
-    plt.ylim([-0.01, 1.01])
-    plt.yticks(np.arange(0, 1.01, 0.2), fontsize=12)
+    plt.ylim([-0.006, .606])
+    plt.yticks(np.arange(0, 0.61, 0.2), fontsize=12)
+    plt.ylabel('jISI', fontsize=12)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     if save:
@@ -110,10 +113,11 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo, save=False):
                      linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     plt.xticks(scenario_labels, scenario_labels, fontsize=12)
     plt.xlabel(r'rank $R$', fontsize=12)
-    plt.ylim([-0.01, 1.01])
-    plt.yticks(np.arange(0, 1.01, 0.2), fontsize=12)
-    # plt.ylim([-0.25, 25.25])
-    # plt.yticks(np.arange(0, 25.1, 5), fontsize=12)
+    plt.ylim([-0.003, 0.303])
+    plt.yticks(np.arange(0, 0.31, 0.1), fontsize=12)
+    # plt.ylim([-0.25, 20.2])
+    # plt.yticks(np.arange(0, 20.1, 5), fontsize=12)
+    plt.ylabel('Runtime in seconds', fontsize=12)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     if save:
@@ -125,23 +129,22 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo, save=False):
         plt.show()
 
 
-def plot_eigenvalues(scv_cov, show=True, filename=None):
+def plot_eigenvalues(scv_cov, filename=None):
     plt.figure(figsize=(2.5, 2.5))
     Lambda = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov)
     Lambda = Lambda[:, ::-1]  # sort descending
 
     for n in range(scv_cov.shape[2]):
-        plt.plot(np.arange(1, Lambda.shape[1] + 1), Lambda[n, :], 'D:', markersize=2.5, lw=1,
+        plt.plot(np.arange(1, Lambda.shape[1] + 1), np.log(Lambda[n, :]), 'D:', markersize=2.5, lw=1,
                  label=r'$\mathbf{\lambda}_' + f'{n + 1}' + r'$')
     plt.xticks(np.arange(1, Lambda.shape[1] + 1))
-    plt.ylim([-0.1, 10.1])
-    plt.yticks([0, 2, 4, 6, 8, 10])
+    plt.ylim([np.log(0.09), np.log(11)])
+    plt.yticks(np.log(np.array([0.1, 1, 5, 10])), [0.1, 1, 5, 10])
     plt.legend()
     plt.tight_layout()
     if filename is not None:
-        show = False
         plt.savefig(f'{filename}.pdf')
-    if show:
+    else:
         plt.show()
 
 
