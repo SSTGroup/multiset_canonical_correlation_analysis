@@ -292,12 +292,10 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, **kwarg
             X, A, S = generate_datasets_from_covariance_matrices(scv_cov, T)
 
             for algorithm_idx, algorithm in enumerate(algorithms):
-                t_start = time.time()
+                t_start = time.process_time()
                 M = mcca(X, algorithm)[0]
-                t_end = time.time()
                 W = np.moveaxis(M, [0, 1, 2], [1, 0, 2])
-                joint_isi[algorithm_idx, run] = _bss_isi(W, A)[1]
-                runtime[algorithm_idx, run] = t_end - t_start
+                t_end = time.process_time()
 
                 filename = Path(Path(__file__).parent.parent,
                                 f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy')

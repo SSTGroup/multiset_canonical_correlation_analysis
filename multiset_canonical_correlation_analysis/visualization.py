@@ -130,7 +130,7 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo, save=False):
 
 
 def plot_eigenvalues(scv_cov, filename=None):
-    plt.figure(figsize=(2.5, 2.5))
+    plt.figure(figsize=(2.5, 2))
     Lambda = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov)
     Lambda = Lambda[:, ::-1]  # sort descending
 

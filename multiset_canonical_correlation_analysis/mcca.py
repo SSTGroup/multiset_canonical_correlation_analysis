@@ -5,7 +5,7 @@ from scipy.linalg import sqrtm, block_diag
 from .helpers import vectorize_datasets, check_zero_mean, make_ccvs_unit_variance
 
 
-def mcca(X, algorithm='genvar'):
+def mcca(X, algorithm='genvar', max_iter=1000, eps=0.0001, verbose=False):
     """
     Perform mCCA on datasets X^[k].
 
@@ -32,22 +32,22 @@ def mcca(X, algorithm='genvar'):
     """
 
     if algorithm == 'sumcor':
-        M, Epsilon = mcca_sumcorr_nielsen(X)
+        M, Epsilon = mcca_sumcor_nielsen(X)
     elif algorithm == 'maxvar':
         M, Epsilon = mcca_maxvar_minvar_kettenring(X, 'maxvar')
     elif algorithm == 'minvar':
         M, Epsilon = mcca_maxvar_minvar_kettenring(X, 'minvar')
     elif algorithm == 'ssqcor':
-        M, Epsilon = mcca_ssqcor_genvar_kettenring(X, 'ssqcor')
+        M, Epsilon = mcca_ssqcor_genvar_kettenring(X, 'ssqcor', max_iter, eps, verbose)
     elif algorithm == 'genvar':
-        M, Epsilon = mcca_ssqcor_genvar_kettenring(X, 'genvar')
+        M, Epsilon = mcca_ssqcor_genvar_kettenring(X, 'genvar', max_iter, eps, verbose)
     else:
         raise AssertionError("'algorithm' must be 'sumcor', 'maxvar', 'minvar', 'ssqcor', or 'genvar'.")
 
     return M, Epsilon
 
 
-def mcca_sumcorr_nielsen(X):
+def mcca_sumcor_nielsen(X):
     """
     Implementation of mCCA-sumcor according to
     Nielsen, Allan Aasbjerg. "Multiset canonical correlations analysis and multispectral, truly multitemporal remote
