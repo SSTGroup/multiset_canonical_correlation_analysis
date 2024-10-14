@@ -261,7 +261,7 @@ def scv_covs_with_rank_R(N, K, R, alpha, beta):
     return scv_cov
 
 
-def scv_covs_for_minvar(N, K, alpha):
+def scv_covs_for_maxvar_minvar(N, K, alpha):
     Lambda = np.zeros((N, K))
     for n in range(N):
         Lambda[n, -1] = alpha[n]
