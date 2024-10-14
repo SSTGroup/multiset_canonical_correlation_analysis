@@ -32,6 +32,19 @@ def test_plot_results():
     visualization.plot_results_with_errorbars_for_different_R(K, n_montecarlo, save)
 
 
+def test_plot_all_eigenvalues_for_paper():
+    N = 5
+    K = 100
+
+    scv_cov1 = simulations.scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, 1,
+                                                                                        alpha=[0.9, 0.9, 0.9, 0.9, 0.9],
+                                                                                        beta=0.0)
+    scv_cov2 = simulations.scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, K, alpha=[1, 1, 1, 1, 1],
+                                                                                        beta=0.0)
+    scv_cov3 = simulations.scv_covs_for_maxvar_minvar(N, K, alpha=[10, 15, 20, 25, 30])
+    scv_cov4 = simulations.scv_covs_for_maxvar_minvar(N, K, alpha=np.array([0.1, 0.15, 0.2, 0.25, 0.3]))
+
+    visualization.plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, filename=f'evs_K_{K}')
 def test_write_results_in_table():
     K = 10
     n_montecarlo = 50
