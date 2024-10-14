@@ -261,8 +261,8 @@ def scv_covs_with_rank_R(N, K, R, alpha, beta):
     return scv_cov
 
 
-def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, **kwargs):
 
+def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, **kwargs):
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
     for scenario_idx, scenario in enumerate(scenarios):
