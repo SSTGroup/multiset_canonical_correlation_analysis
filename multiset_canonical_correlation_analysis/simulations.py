@@ -261,7 +261,17 @@ def scv_covs_with_rank_R(N, K, R, alpha, beta):
     return scv_cov
 
 
+def scv_covs_for_minvar(N, K, alpha):
+    Lambda = np.zeros((N, K))
+    for n in range(N):
+        Lambda[n, -1] = alpha[n]
+        Lambda[n, :-1] = (K - alpha[n]) / (K - 1)
+    # create N random SCV covariance matrices
+    scv_cov = np.zeros((K, K, N))
+    for n in range(N):
+        scv_cov[:, :, n] = random_correlation.rvs(Lambda[n, :])
 
+    return scv_cov
 def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, **kwargs):
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
