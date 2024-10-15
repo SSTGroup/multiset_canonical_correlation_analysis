@@ -12,8 +12,8 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
     # store violation results for each algorithm
     scenarios_violations = ['same_eigenvalues_different_eigenvectors_rank_1',
                             'same_eigenvalues_different_eigenvectors_rank_K',
-                            'different_lambda_max', 'different_lambda_min']
-    scenario_labels_violations = [r'(a)', r'(b)', r'(c)', r'(d)']
+                            'different_lambda_max', 'different_lambda_min']  # dict keys would be in wrong order
+    scenario_labels_violations = [r'A', r'B', r'C', r'D']
     n_scenarios_violations = len(scenario_labels_violations)
     algorithms = list(results_violations[scenarios_violations[0]].keys())
     joint_isi_per_algorithm_violations = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm in
@@ -52,7 +52,7 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
                          np.std(joint_isi_per_algorithm_violations[algorithm], axis=1),
                          linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     axes[0].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
-    axes[0].set_xlabel(r'scenario', fontsize=12)
+    axes[0].set_xlabel(r'Experiment', fontsize=12)
     axes[0].set_ylim([-0.05, 1.05])
     axes[0].set_yticks([0, 0.5, 1])
     axes[0].set_yticklabels([0, 0.5, 1], fontsize=12)
@@ -64,7 +64,7 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
                          np.std(joint_isi_per_algorithm_different_R[algorithm], axis=1),
                          linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     axes[1].set_xticks(np.log([1, 2, 5, 10, 100]), [1, 2, 5, 10, 100], fontsize=12)
-    axes[1].set_xlabel(r'rank $R$', fontsize=12)
+    axes[1].set_xlabel(r'Rank $R$', fontsize=12)
     axes[1].set_ylim([-0.025, 0.525])
     axes[1].set_yticks([0, 0.25, 0.5], [0, 0.25, 0.5], fontsize=12)
     axes[1].set_ylabel('jISI', fontsize=12)
@@ -88,7 +88,7 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
                          np.std(runtime_per_algorithm_violations[algorithm], axis=1),
                          linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     axes[0].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
-    axes[0].set_xlabel(r'scenario', fontsize=12)
+    axes[0].set_xlabel(r'Experiment', fontsize=12)
     axes[0].set_ylim([-10, 210])
     axes[0].set_yticks([0, 100, 200], [0, 100, 200], fontsize=12)
     axes[0].set_ylabel('runtime in seconds', fontsize=12)
@@ -99,7 +99,7 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
                          np.std(runtime_per_algorithm_different_R[algorithm], axis=1),
                          linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     axes[1].set_xticks(np.log([1, 2, 5, 10, 100]), [1, 2, 5, 10, 100], fontsize=12)
-    axes[1].set_xlabel(r'rank $R$', fontsize=12)
+    axes[1].set_xlabel(r'Rank $R$', fontsize=12)
     axes[1].set_ylim([-1, 21])
     axes[1].set_yticks([0, 10, 20], [0, 10, 20], fontsize=12)
     axes[1].set_ylabel('runtime in seconds', fontsize=12)
