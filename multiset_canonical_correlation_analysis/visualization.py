@@ -10,7 +10,6 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
     results = np.load(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/violations_K_{K}.npy'),
                       allow_pickle=True).item()
 
-    # create pandas dataframe from results
     scenarios = list(results.keys())
     scenario_labels = ['same $\lambda_{\mathrm{max}}$', 'same $\lambda_{\mathrm{min}}$',
                        r'same $\mathbf{\lambda}$',
@@ -129,22 +128,19 @@ def plot_results_with_errorbars_for_different_R(K, n_montecarlo, save=False):
         plt.show()
 
 
-def plot_eigenvalues(scv_cov, filename=None):
+def plot_eigenvalues(scv_cov, title=None, show=True):
     plt.figure(figsize=(2.5, 2))
     Lambda = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov)
     Lambda = Lambda[:, ::-1]  # sort descending
 
     for n in range(scv_cov.shape[2]):
-        plt.plot(np.arange(1, Lambda.shape[1] + 1), np.log(Lambda[n, :]), 'D:', markersize=2.5, lw=1,
+        plt.plot(np.arange(1, Lambda.shape[1] + 1), Lambda[n, :], 'D:', markersize=2.5, lw=1,
                  label=r'$\mathbf{\lambda}_' + f'{n + 1}' + r'$')
-    plt.xticks(np.arange(1, Lambda.shape[1] + 1))
-    plt.ylim([np.log(0.09), np.log(11)])
-    plt.yticks(np.log(np.array([0.1, 1, 5, 10])), [0.1, 1, 5, 10])
     plt.legend()
+    if title is not None:
+        plt.title(title)
     plt.tight_layout()
-    if filename is not None:
-        plt.savefig(f'{filename}.pdf')
-    else:
+    if show:
         plt.show()
 
 
