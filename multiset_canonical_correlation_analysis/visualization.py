@@ -148,52 +148,6 @@ def plot_eigenvalues(scv_cov, filename=None):
         plt.show()
 
 
-def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, filename=None):
-    indices = [0, 9, 19, 29, 39, 49, 59, 69, 79, 89, 99]
-    Lambda = []
-    Lambda1 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov1)
-    Lambda.append(Lambda1[:, ::-1][:, indices])  # sort descending
-    Lambda2 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov2)
-    Lambda.append(Lambda2[:, ::-1][:, indices])  # sort descending
-    Lambda3 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov3)
-    Lambda.append(Lambda3[:, ::-1][:, indices])  # sort descending
-    Lambda4 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov4)
-    Lambda.append(Lambda4[:, ::-1][:, indices])  # sort descending
-    titles = [r'(a)  same $\mathbf{\lambda}$ ($R=1$)', r'(b)  same $\mathbf{\lambda}$ ($R=K$)',
-              r'(c)  different $\lambda_{\mathrm{max}}$',
-              r'(d)  different $\lambda_{\mathrm{min}}$']
-
-    fig, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 2))
-    for ax_idx, ax in enumerate(axes):
-
-        for n in range(scv_cov1.shape[2]):
-            ax.plot(np.array(indices) + 1, Lambda[ax_idx][4 - n, :], 'D:', markersize=2.5, lw=1,
-                    color=f'C{4 - n}', label=r'$\mathbf{\lambda}_' + f'{4 - n + 1}' + r'$')
-        ax.set_xlabel(titles[ax_idx], fontsize=12)
-
-    axes[0].set_ylim([-5, 105])
-    axes[0].set_yticks(np.array([0, 50, 100]))
-    axes[0].set_yticklabels([0, 50, 100], fontsize=11)
-
-    axes[1].set_ylim([-0.25, 5.25])
-    axes[1].set_yticks(np.array([0, 2.5, 5]))
-    axes[1].set_yticklabels([0, 2.5, 5], fontsize=11)
-
-    axes[2].set_ylim([-2.5, 52.5])
-    axes[2].set_yticks(np.array([0, 25, 50]))
-    axes[2].set_yticklabels([0, 25, 50], fontsize=11)
-
-    axes[3].set_ylim([-0.1, 2.1])
-    axes[3].set_yticks(np.array([0, 1,2 ]))
-    axes[3].set_yticklabels([0, 1,2], fontsize=11)
-
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    plt.tight_layout()
-    if filename is not None:
-        plt.savefig(f'{filename}.pdf')
-    else:
-        plt.show()
-
 def write_results_in_latex_table(K, n_montecarlo):
     results = np.load(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/K_{K}.npy'),
                       allow_pickle=True).item()
