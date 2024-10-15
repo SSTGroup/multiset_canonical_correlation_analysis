@@ -202,7 +202,7 @@ def save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo):
 
 
 def save_different_R_results_from_multiple_files_in_one_file(K, n_montecarlo):
-    scenarios = [f'rank_{R}' for R in range(1, 11)]
+    scenarios = [f'rank_{R}' for R in [1, 2, 5, 10, 100]]
 
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 

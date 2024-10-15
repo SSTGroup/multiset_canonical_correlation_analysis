@@ -30,7 +30,7 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
                 'runtime']
 
     # store different R results for each algorithm
-    scenarios_different_R = [f'rank_{R}' for R in [1, 2, 5, 10]]
+    scenarios_different_R = [f'rank_{R}' for R in [1, 2, 5, 10, 100]]
     n_scenarios_different_R = len(scenarios_different_R)
     algorithms = list(results_different_R[scenarios_different_R[0]].keys())
     joint_isi_per_algorithm_different_R = {algorithm: np.zeros((n_scenarios_different_R, n_montecarlo)) for algorithm in
@@ -62,13 +62,14 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
 
     # different R
     for algorithm in algorithms:
-        axes[1].errorbar(np.log([1, 2, 5, 10]), np.mean(joint_isi_per_algorithm_different_R[algorithm], axis=1),
+        axes[1].errorbar(np.log([1, 2, 5, 10, 100]), np.mean(joint_isi_per_algorithm_different_R[algorithm], axis=1),
                          np.std(joint_isi_per_algorithm_different_R[algorithm], axis=1),
                          linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
+    axes[1].set_xlim([np.log(0.9), np.log(110)])
     axes[1].set_xticks(np.log([1, 2, 5, 10, 100]), [1, 2, 5, 10, 100], fontsize=12)
     axes[1].set_xlabel(r'Rank $R$', fontsize=12)
-    axes[1].set_ylim([-0.025, 0.525])
-    axes[1].set_yticks([0, 0.25, 0.5], [0, 0.25, 0.5], fontsize=12)
+    axes[1].set_ylim([-0.03, 0.63])
+    axes[1].set_yticks([0, 0.3, 0.6], [0, 0.3, 0.6], fontsize=12)
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
@@ -96,13 +97,14 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
 
     # different R
     for algorithm in algorithms:
-        axes[1].errorbar(np.log([1, 2, 5, 10]), np.mean(runtime_per_algorithm_different_R[algorithm], axis=1),
+        axes[1].errorbar(np.log([1, 2, 5, 10, 100]), np.mean(runtime_per_algorithm_different_R[algorithm], axis=1),
                          np.std(runtime_per_algorithm_different_R[algorithm], axis=1),
                          linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
+    axes[1].set_xlim([np.log(0.9), np.log(110)])
     axes[1].set_xticks(np.log([1, 2, 5, 10, 100]), [1, 2, 5, 10, 100], fontsize=12)
     axes[1].set_xlabel(r'Rank $R$', fontsize=12)
-    axes[1].set_ylim([-1, 21])
-    axes[1].set_yticks([0, 10, 20], [0, 10, 20], fontsize=12)
+    axes[1].set_ylim([-1.5, 31.5])
+    axes[1].set_yticks([0, 15, 30], [0, 15, 30], fontsize=12)
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
