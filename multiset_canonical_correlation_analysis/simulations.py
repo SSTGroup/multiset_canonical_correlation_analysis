@@ -272,30 +272,34 @@ def scv_covs_for_maxvar_minvar(N, K, alpha):
         scv_cov[:, :, n] = random_correlation.rvs(Lambda[n, :])
 
     return scv_cov
-def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, **kwargs):
+
+
+
+def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios):
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
-    for scenario_idx, scenario in enumerate(scenarios):
-        print(f'Simulations for {scenario}')
+    for run in range(n_montecarlo):
+        print(f'Start run {run}...')
 
-        for run in range(n_montecarlo):
-            print(f'Start run {run}...')
+        for scenario_idx, scenario in enumerate(scenarios):
+            print(f'Simulations for {scenario}')
 
-            if scenario == 'same_maximum_eigenvalue':
-                scv_cov = scv_covs_with_same_maximum_eigenvalue(N, K)
-            elif scenario == 'same_minimum_eigenvalue':
-                scv_cov = scv_covs_with_same_minimum_eigenvalue(N, K)
-            elif scenario == 'same_eigenvalues_different_eigenvectors':
-                scv_cov = scv_covs_with_same_eigenvalues_different_eigenvectors(N, K)
-            elif scenario == 'same_eigenvalues_different_eigenvectors_rank_1':
-                scv_cov = scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, 1, **kwargs)
-            elif scenario == 'same_eigenvalues_different_eigenvectors_rank_K':
-                scv_cov = scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, K, alpha=[1, 1, 1, 1, 1],
+            if scenario == 'same_eigenvalues_different_eigenvectors_rank_1':
+                scv_cov = scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, 1,
+                                                                                       alpha=[0.9, 0.9, 0.9, 0.9, 0.9],
                                                                                        beta=0.0)
-            elif scenario == 'same_eigenvalues_different_sign_eigenvectors':
-                scv_cov = scv_covs_with_same_eigenvalues_different_sign_eigenvectors(N, K)
+            elif scenario == 'same_eigenvalues_different_eigenvectors_rank_K':
+                scv_cov = scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, K,
+                                                                                       alpha=[0.9, 0.9, 0.9, 0.9, 0.9],
+                                                                                       beta=0.0)
+            elif scenario == 'different_lambda_min':
+                scv_cov = scv_covs_for_maxvar_minvar(N, K, alpha=[0.1, 0.15, 0.2, 0.25, 0.3])
+            elif scenario == 'different_lambda_max':
+                scv_cov = scv_covs_for_maxvar_minvar(N, K, alpha=[10, 15, 20, 25, 30])
+            elif scenario == 'different_lambda_min2':
+                scv_cov = scv_covs_for_minvar2(N, K, alpha=[0.1, 0.15, 0.2, 0.25, 0.3])
             elif scenario[0:5] == 'rank_':
-                scv_cov = scv_covs_with_rank_R(N, K, int(scenario[5:]), **kwargs)
+                scv_cov = scv_covs_with_rank_R(N, K, int(scenario[5:]), alpha=[0.9, 0.85, 0.8, 0.75, 0.7], beta=0.0)
             else:
                 raise AssertionError(f"scenario '{scenario}' does not exist")
 
@@ -313,10 +317,8 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, **kwarg
 
 
 def save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo):
-    scenarios = ['same_maximum_eigenvalue', 'same_minimum_eigenvalue',
-                 'same_eigenvalues_different_eigenvectors',
-                 'same_eigenvalues_different_eigenvectors_rank_K', 'same_eigenvalues_different_eigenvectors_rank_1'
-                 ]
+    scenarios = ['same_eigenvalues_different_eigenvectors_rank_1', 'same_eigenvalues_different_eigenvectors_rank_K',
+                 'different_lambda_max', 'different_lambda_min']
 
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
