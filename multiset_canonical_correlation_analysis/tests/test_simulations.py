@@ -1,35 +1,9 @@
+import numpy as np
+
+from independent_vector_analysis.helpers_iva import _bss_isi
+import time
+
 from .. import simulations
-from .. import visualization
-
-
-def test_scv_covs_with_same_maximum_eigenvalue():
-    N = 5
-    K = 10
-    scv_cov = simulations.scv_covs_with_same_maximum_eigenvalue(N, K)
-    visualization.plot_eigenvalues(scv_cov)
-
-
-def test_scv_covs_with_rank_R():
-    N = 5
-    K = 100
-    R = 1
-    beta = 0.0
-    alpha = [0.9, 0.85, 0.8, 0.75, 0.7]
-    scv_cov = simulations.scv_covs_with_rank_R(N, K, R, alpha, beta)
-    visualization.plot_eigenvalues(scv_cov)
-
-
-def test_save_results():
-    N = 5  # SCVs
-    T = 10000  # samples
-    n_montecarlo = 50  # runs
-
-    K = 100  # datasets
-
-    scenarios = ['same_eigenvalues_different_eigenvectors_rank_1', 'same_eigenvalues_different_eigenvectors_rank_K',
-                 'different_lambda_max', 'different_lambda_min']
-    scenarios += [f'rank_{R}' for R in [1, 2, 5, 10]]
-    simulations.save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios)
 
 
 def test_one_run_one_algorithm():
@@ -70,3 +44,17 @@ def test_one_run_one_algorithm():
 
     print(f'joint_isi: {_bss_isi(W, A)[1]}')
     print(f'runtime: {t_end - t_start}')
+
+
+def test_save_paper_results():
+    N = 5  # SCVs
+    T = 10000  # samples
+    n_montecarlo = 50  # runs
+
+    K = 100  # datasets
+
+    # scenarios = ['same_eigenvalues_different_eigenvectors_rank_1', 'same_eigenvalues_different_eigenvectors_rank_K',
+    #              'different_lambda_max', 'different_lambda_min']
+    # scenarios += [f'rank_{R}' for R in [1, 2, 5, 10]]
+    scenarios = ['rank_100']
+    simulations.save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios)

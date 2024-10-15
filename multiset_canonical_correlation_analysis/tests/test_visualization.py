@@ -19,7 +19,7 @@ def test_plot_eigenvalues():
 
 
 def test_plot_results():
-    K = 10
+    K = 100
     n_montecarlo = 50
     save = False
 
@@ -31,7 +31,7 @@ def test_plot_results():
 
 
 def test_write_results_in_table():
-    K = 10
+    K = 100
     n_montecarlo = 50
 
     visualization.write_results_in_latex_table(K, n_montecarlo)
