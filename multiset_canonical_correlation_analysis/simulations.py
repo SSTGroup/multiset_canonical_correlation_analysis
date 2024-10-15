@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import random_correlation
 from pathlib import Path
@@ -6,7 +5,7 @@ from pathlib import Path
 from independent_vector_analysis.helpers_iva import _bss_isi
 from independent_vector_analysis.data_generation import MGGD_generation
 
-from .helpers import calculate_eigenvalues_from_ccv_covariance_matrices
+from .helpers import calculate_eigenvalues_from_ccv_covariance_matrices, calculate_matrix_ranks
 from .mcca import mcca
 
 import time
@@ -30,119 +29,6 @@ def generate_datasets_from_covariance_matrices(scv_cov, T):
         X[:, :, k] = A[:, :, k] @ S[:, :, k]
 
     return X, A, S
-
-
-def scv_covs_with_same_maximum_eigenvalue(N, K):
-    """
-    Return SCV covariance matrices of dimensions (K,K,N) that have the same maximum eigenvalue (to violate the maxvar
-    source identification condition).
-
-
-    Parameters
-    ----------
-    N : int
-        number of SCVs
-
-    K : int
-        number of datasets
-
-    Returns
-    -------
-    scv_cov : np.ndarray
-        Array of dimensions (K, K, N) that contains the SCV covariance matrices
-
-    """
-
-    Lambda = np.zeros((N, K))
-    for n in range(N):
-        lambda_K_1 = -1
-        while lambda_K_1 < 0.2:  # this EV should be bigger than 0.2 to not violate minvar
-            Lambda[n, 0] = (K - 1) / 2
-            Lambda[n, 1:K - 2] = np.random.uniform(0.2, 1, K - 3)
-            Lambda[n, K - 2] = np.random.uniform(0.05, 0.15)  # only this EV should be smaller than 0.2
-            lambda_K_1 = K - np.sum(Lambda[n, :])
-        Lambda[n, K - 1] = lambda_K_1
-
-    # create covariance matrices with these eigenvalue profiles
-    scv_cov = np.zeros((K, K, N))
-    for n in range(N):
-        scv_cov[:, :, n] = random_correlation.rvs(Lambda[n, :])
-
-    return scv_cov
-
-
-def scv_covs_with_same_minimum_eigenvalue(N, K):
-    """
-    Return SCV covariance matrices of dimensions (K,K,N) that have the same minimum eigenvalue (to violate the minvar
-    source identification condition).
-
-
-    Parameters
-    ----------
-    N : int
-        number of SCVs
-
-    K : int
-        number of datasets
-
-    Returns
-    -------
-    scv_cov : np.ndarray
-        Array of dimensions (K, K, N) that contains the SCV covariance matrices
-
-    """
-
-    # all generated eigenvalues must be non-negative, and their sum must equal K
-    Lambda = np.zeros((N, K))
-    for n in range(N):
-        lambda_K_1 = -1
-        while lambda_K_1 < 0:  # this EV should be bigger than 0 to have all positive eigenvalues
-            Lambda[n, 0] = 0.1
-            Lambda[n, 1:K - 1] = np.random.uniform(0.2, 1, K - 2)
-            lambda_K_1 = K - np.sum(Lambda[n, :])
-        Lambda[n, K - 1] = lambda_K_1
-
-    # create covariance matrices with these eigenvalue profiles
-    scv_cov = np.zeros((K, K, N))
-    for n in range(N):
-        scv_cov[:, :, n] = random_correlation.rvs(Lambda[n, :])
-
-    return scv_cov
-
-
-def scv_covs_with_same_eigenvalues_different_eigenvectors(N, K):
-    """
-    Return SCV covariance matrices of dimensions (K,K,N) that have the same eigenvalues but different eigenvectors (to
-    test if genvar can still identify the sources thanks to the eigenvectors).
-
-
-    Parameters
-    ----------
-    N : int
-        number of SCVs
-
-    K : int
-        number of datasets
-
-    Returns
-    -------
-    scv_cov : np.ndarray
-        Array of dimensions (K, K, N) that contains the SCV covariance matrices
-
-    """
-
-    # same eigenvalue profile for all SCVs (generated as for violating minvar)
-    Lambda = np.zeros(K)
-    Lambda[0] = 0.1
-    Lambda[1:K - 1] = np.random.uniform(0.2, 1, K - 2)
-    Lambda[K - 1] = K - np.sum(Lambda)
-
-    # create N random SCV covariance matrices
-    scv_cov = np.zeros((K, K, N))
-    for n in range(N):
-        scv_cov[:, :, n] = random_correlation.rvs(Lambda)
-
-    return scv_cov
 
 
 def scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, R, alpha, beta):
@@ -174,46 +60,6 @@ def scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, R, alpha,
     for n in range(N):
         scv_cov[:, :, n] = random_correlation.rvs(Lambda)
 
-    return scv_cov
-
-
-def scv_covs_with_same_eigenvalues_different_sign_eigenvectors(N, K):
-    """
-    Return SCV covariance matrices of dimension (K,K,N) that have the same eigenvalues and eigenvectors just differing
-    in the sign:
-    U_n = D_n U_1, where D_n is a diagonal matrix with diagonal elements +-1.
-    This violates all mCCA conditions including genvar.
-
-
-    Parameters
-    ----------
-    N : int
-        number of SCVs
-
-    K : int
-        number of datasets
-
-    Returns
-    -------
-    scv_cov : np.ndarray
-        Array of dimensions (K, K, N) that contains the SCV covariance matrices
-
-    """
-
-    # same eigenvalue profile for all SCVs (generated as for violating minvar)
-    Lambda = np.zeros(K)
-    Lambda[0] = 0.1
-    Lambda[1:K - 1] = np.random.uniform(0.2, 1, K - 2)
-    Lambda[K - 1] = K - np.sum(Lambda)
-
-    # create covariance matrix for 1st SCV
-    scv_cov = np.zeros((K, K, N))
-    scv_cov[:, :, 0] = random_correlation.rvs(Lambda)
-
-    for n in range(1, N):
-        # create diagonal matrix with +-1 on the diagonal
-        D = np.diag(np.sign(np.random.uniform(-1, 1, K)))
-        scv_cov[:, :, n] = D @ scv_cov[:, :, 0] @ D
     return scv_cov
 
 
@@ -270,6 +116,20 @@ def scv_covs_for_maxvar_minvar(N, K, alpha):
     scv_cov = np.zeros((K, K, N))
     for n in range(N):
         scv_cov[:, :, n] = random_correlation.rvs(Lambda[n, :])
+
+    # # this is to check if eigenvalues of minvar are the same
+    # A = np.linalg.eigh(scv_cov[:, :, 2])[1]
+    # B = np.linalg.eigh(scv_cov[:, :, 1])[1]
+    # sign_vector = np.isclose(A[:, 0], B[:, 0])
+    # sign_vector = sign_vector * 2 - 1
+    # calculate_matrix_ranks(np.diag(sign_vector) @ A[:, 1:], B[:, 1:])
+    #
+    # # this is to check if eigenvalues of maxvar are the same
+    # A = np.linalg.eigh(scv_cov[:, :, 2])[1]
+    # B = np.linalg.eigh(scv_cov[:, :, 1])[1]
+    # sign_vector = np.isclose(A[:, -1], B[:, -1])
+    # sign_vector = sign_vector * 2 - 1
+    # calculate_matrix_ranks(np.diag(sign_vector) @ A[:, :-1], B[:, :-1])
 
     return scv_cov
 
