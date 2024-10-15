@@ -69,7 +69,6 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
     axes[1].set_xlabel(r'Rank $R$', fontsize=12)
     axes[1].set_ylim([-0.025, 0.525])
     axes[1].set_yticks([0, 0.25, 0.5], [0, 0.25, 0.5], fontsize=12)
-    axes[1].set_ylabel('jISI', fontsize=12)
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
@@ -104,7 +103,6 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
     axes[1].set_xlabel(r'Rank $R$', fontsize=12)
     axes[1].set_ylim([-1, 21])
     axes[1].set_yticks([0, 10, 20], [0, 10, 20], fontsize=12)
-    axes[1].set_ylabel('runtime in seconds', fontsize=12)
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
