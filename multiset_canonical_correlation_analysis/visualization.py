@@ -11,10 +11,8 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
                       allow_pickle=True).item()
 
     scenarios = list(results.keys())
-    scenario_labels = ['same $\lambda_{\mathrm{max}}$', 'same $\lambda_{\mathrm{min}}$',
-                       r'same $\mathbf{\lambda}$',
-                       r'same $\mathbf{\lambda}$ (rank $K$)', r'same $\mathbf{\lambda}$ (rank $1$)'
-                       ]
+    scenario_labels = [r'same $\mathbf{\lambda}$ (rank $1$)', r'same $\mathbf{\lambda}$ (rank $K$)',
+                       'different $\lambda_{\mathrm{max}}$', 'different $\lambda_{\mathrm{min}}$']
     n_scenarios = len(scenario_labels)
 
     algorithms = list(results[scenarios[0]].keys())
@@ -51,10 +49,8 @@ def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
                      np.std(runtime_per_algorithm[algorithm], axis=1),
                      linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12, rotation=90)
-    plt.ylim([-0.02, 2.02])
-    plt.yticks(np.arange(0, 2.01, 0.5), fontsize=12)
-    # plt.ylim([-2, 202])
-    # plt.yticks(np.arange(0, 200.1, 50), fontsize=12)
+    plt.ylim([-2, 202])
+    plt.yticks(np.arange(0, 200.1, 50), fontsize=12)
     plt.ylabel('Runtime in seconds', fontsize=12)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
