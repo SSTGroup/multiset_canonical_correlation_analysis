@@ -52,7 +52,7 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
         axes[0].errorbar(np.arange(n_scenarios_violations),
                          np.mean(joint_isi_per_algorithm_violations[algorithm], axis=1),
                          np.std(joint_isi_per_algorithm_violations[algorithm], axis=1),
-                         linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
+                         linestyle=(0, (1, 5)), fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     axes[0].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
     axes[0].set_xlabel(r'Experiment', fontsize=12)
     axes[0].set_ylim([-0.05, 1.05])
@@ -88,7 +88,7 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
         axes[0].errorbar(np.arange(n_scenarios_violations),
                          np.mean(runtime_per_algorithm_violations[algorithm], axis=1),
                          np.std(runtime_per_algorithm_violations[algorithm], axis=1),
-                         linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
+                         linestyle=(0, (1, 5)), fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     axes[0].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
     axes[0].set_xlabel(r'Experiment', fontsize=12)
     axes[0].set_ylim([-10, 210])
@@ -128,9 +128,9 @@ def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, filen
     Lambda.append(Lambda3[:, ::-1][:, indices])  # sort descending
     Lambda4 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov4)
     Lambda.append(Lambda4[:, ::-1][:, indices])  # sort descending
-    titles = [r'(a)  same $\mathbf{\lambda}$ ($R=1$)', r'(b)  same $\mathbf{\lambda}$ ($R=K$)',
-              r'(c)  different $\lambda_{\mathrm{max}}$',
-              r'(d)  different $\lambda_{\mathrm{min}}$']
+    titles = [r'A. same $\mathbf{\lambda}$ ($R=1$)', r'B. same $\mathbf{\lambda}$ ($R=K$)',
+              r'C. different $\lambda_{\mathrm{max}}$',
+              r'D. different $\lambda_{\mathrm{min}}$']
 
     fig, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 2))
     for ax_idx, ax in enumerate(axes):

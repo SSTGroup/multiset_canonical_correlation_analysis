@@ -86,24 +86,16 @@ def scv_covs_with_rank_R(N, K, R, alpha, beta):
         Array of dimensions (K, K, N) that contains the SCV covariance matrices
 
     """
-    while True:  # make sure that second largest EVs of all SCVs are smaller than largest EVs of all SCVs
-        scv_cov = np.zeros((K, K, N))
-        for n in range(N):
-            if alpha[n] + beta > 1:
-                raise ValueError("alpha + beta must be smaller or equal to 1")
-            temp_rank_term = np.random.randn(K, R)
-            temp_rank_term /= np.linalg.norm(temp_rank_term, axis=1, keepdims=True)
-            temp_variability_term = np.random.randn(K, K)
-            temp_variability_term /= np.linalg.norm(temp_variability_term, axis=1, keepdims=True)
-            scv_cov[:, :, n] = alpha[n] * (temp_rank_term @ temp_rank_term.T) + beta * (
-                    temp_variability_term @ temp_variability_term.T) ** 2 + (1 - alpha[n] - beta) * np.eye(K)
-
-        Lambda = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov)
-        Lambda = Lambda[:, ::-1]  # sort descending
-
-        # largest EVs of all SCVs should be bigger than second largest SCVs + some margin, otherwise recreate
-        if np.min(Lambda[:, 0]) > np.max(Lambda[:, 1]) + 1 / K:
-            break
+    scv_cov = np.zeros((K, K, N))
+    for n in range(N):
+        if alpha[n] + beta > 1:
+            raise ValueError("alpha + beta must be smaller or equal to 1")
+        temp_rank_term = np.random.randn(K, R)
+        temp_rank_term /= np.linalg.norm(temp_rank_term, axis=1, keepdims=True)
+        temp_variability_term = np.random.randn(K, K)
+        temp_variability_term /= np.linalg.norm(temp_variability_term, axis=1, keepdims=True)
+        scv_cov[:, :, n] = alpha[n] * (temp_rank_term @ temp_rank_term.T) + beta * (
+                temp_variability_term @ temp_variability_term.T) ** 2 + (1 - alpha[n] - beta) * np.eye(K)
     return scv_cov
 
 
@@ -153,11 +145,11 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios):
                                                                                        alpha=[0.9, 0.9, 0.9, 0.9, 0.9],
                                                                                        beta=0.0)
             elif scenario == 'different_lambda_min':
-                scv_cov = scv_covs_for_maxvar_minvar(N, K, alpha=[0.1, 0.15, 0.2, 0.25, 0.3])
+                alpha = 1 - (K - np.array([0.1, 0.15, 0.2, 0.25, 0.3])) / (K - 1)
+                scv_cov = scv_covs_with_rank_R(N, K, 1, alpha=alpha, beta=0.0)
             elif scenario == 'different_lambda_max':
-                scv_cov = scv_covs_for_maxvar_minvar(N, K, alpha=[10, 15, 20, 25, 30])
-            elif scenario == 'different_lambda_min2':
-                scv_cov = scv_covs_for_minvar2(N, K, alpha=[0.1, 0.15, 0.2, 0.25, 0.3])
+                alpha = 1 - (K - np.array([10, 15, 20, 25, 30])) / (K - 1)
+                scv_cov = scv_covs_with_rank_R(N, K, 1, alpha=alpha, beta=0.0)
             elif scenario[0:5] == 'rank_':
                 scv_cov = scv_covs_with_rank_R(N, K, int(scenario[5:]), alpha=[0.9, 0.85, 0.8, 0.75, 0.7], beta=0.0)
             else:
@@ -202,7 +194,7 @@ def save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo):
 
 
 def save_different_R_results_from_multiple_files_in_one_file(K, n_montecarlo):
-    scenarios = [f'rank_{R}' for R in [1, 2, 5, 10, 100]]
+    scenarios = [f'rank_{R}' for R in [1, 2, 5, 10, 20, 50, 100]]
 
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
