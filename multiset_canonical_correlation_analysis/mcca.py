@@ -262,18 +262,21 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
 
     for n in range(N):
         theta_n = np.zeros((K, max_iter))
+        H_n = np.zeros((N, N, K))
+        for k in range(K):
+            if n == 0:
+                H_n[:, :, k] = np.eye(N)  # A_j in eq. (12.5c) for the first CCV
+                if algorithm == 'genvar':
+                    # init R_n
+                    V_n = block_diag(*V[:, n, :].T).T
+                    R_n = V_n.T @ C_yy @ V_n  # K x K covariance matrix of nth CCV
+            else:
+                V_n_1_k = V[:, 0:n, k]  # C_j on p.445
+                H_n[:, :, k] = np.eye(N) - V_n_1_k @ np.linalg.inv(
+                    V_n_1_k.T @ V_n_1_k) @ V_n_1_k.T  # A_j in eq. (12.5c)
+
         for iter in range(1, max_iter):
             for k in range(K):
-                if n == 0:
-                    H_n_k = np.eye(N)  # A_j in eq. (12.5c) for the first CCV
-                    if algorithm == 'genvar':
-                        # init R_n
-                        V_n = block_diag(*V[:, n, :].T).T
-                        R_n = V_n.T @ C_yy @ V_n  # K x K covariance matrix of nth CCV
-                else:
-                    V_n_1_k = V[:, 0:n, k]  # C_j on p.445
-                    H_n_k = np.eye(N) - V_n_1_k @ np.linalg.inv(V_n_1_k.T @ V_n_1_k) @ V_n_1_k.T  # A_j in eq. (12.5c)
-
                 # [ C_yy^[k,1] m_n^[1], ..., C_yy^[k,k-1] m_n^[k-1], C_yy^[k,k+1] m_n^[k+1], ..., C_yy^[k,K] m_n^[K] ]
                 N_n_k = []
                 for l in range(K):
@@ -290,13 +293,13 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
                 else:
                     raise ValueError("'algorithm' must be 'ssqcor' or 'genvar'")
 
-                # we can perform EVD of H_n F_n H_n, as we are just interested in the leading eigenvector
-                eigval, eigvec = np.linalg.eigh(H_n_k @ F_n_k @ H_n_k)
+                # we can perform EVD of H_n F_n H_n (which is faster), as we are just interested in leading eigenvector
+                eigval, eigvec = np.linalg.eigh(H_n[:, :, k] @ F_n_k @ H_n[:, :, k])
                 # eigvals and eigvecs should be sorted in descending order
                 eigval = eigval[::-1]
                 eigvec = eigvec[:, ::-1]
                 V[:, n, k] = eigvec[:, 0]
-                theta_n[k, iter] = 1 + eigval[0]
+                theta_n[k, iter] = eigval[0]
 
                 if algorithm == 'genvar':
                     # update R_n
