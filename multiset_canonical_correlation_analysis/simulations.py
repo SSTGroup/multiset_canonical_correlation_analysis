@@ -31,7 +31,46 @@ def generate_datasets_from_covariance_matrices(scv_cov, T):
     return X, A, S
 
 
-def scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, R, alpha, beta):
+def scv_covs_with_same_eigenvalues_same_eigenvectors_rank_K(N, K, alpha, beta):
+    """
+    Return SCV covariance matrices of dimensions (K,K,N) that have the same eigenvalues but different eigenvectors (to
+    test if genvar can still identify the sources thanks to the eigenvectors).
+
+
+    Parameters
+    ----------
+    N : int
+        number of SCVs
+
+    K : int
+        number of datasets
+
+    Returns
+    -------
+    scv_cov : np.ndarray
+        Array of dimensions (K, K, N) that contains the SCV covariance matrices
+
+    """
+
+    # create N random SCV covariance matrices
+    scv_cov = np.zeros((K, K, N))
+
+    # same eigenvalue profile for all SCVs (generated as for rank K)
+    scv_cov[:, :, 0] = scv_covs_with_rank_R(N, K, K, alpha, beta)[:, :, 0]
+    Lambda, eigvec = np.linalg.eigh(scv_cov[:, :, 0])
+
+    for n in range(1, N):
+        # make matrix with diagonal elements +-1
+        diag_elements = np.random.uniform(-1, 1, K)
+        diag_elements = np.sign(diag_elements)
+        D = np.diag(diag_elements)
+        U = D @ eigvec
+        scv_cov[:, :, n] = U @ np.diag(Lambda) @ U.T
+
+    return scv_cov
+
+
+def scv_covs_with_same_eigenvalues_different_eigenvectors_rank_K(N, K, alpha, beta):
     """
     Return SCV covariance matrices of dimensions (K,K,N) that have the same eigenvalues but different eigenvectors (to
     test if genvar can still identify the sources thanks to the eigenvectors).
@@ -53,7 +92,7 @@ def scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, R, alpha,
     """
 
     # same eigenvalue profile for all SCVs (generated as for rank K)
-    Lambda = calculate_eigenvalues_from_ccv_covariance_matrices(scv_covs_with_rank_R(N, K, R, alpha, beta))[0, :]
+    Lambda = calculate_eigenvalues_from_ccv_covariance_matrices(scv_covs_with_rank_R(N, K, K, alpha, beta))[0, :]
 
     # create N random SCV covariance matrices
     scv_cov = np.zeros((K, K, N))
@@ -126,7 +165,6 @@ def scv_covs_for_maxvar_minvar(N, K, alpha):
     return scv_cov
 
 
-
 def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios):
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
@@ -136,12 +174,12 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios):
         for scenario_idx, scenario in enumerate(scenarios):
             print(f'Simulations for {scenario}')
 
-            if scenario == 'same_eigenvalues_different_eigenvectors_rank_1':
-                scv_cov = scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, 1,
-                                                                                       alpha=[0.9, 0.9, 0.9, 0.9, 0.9],
-                                                                                       beta=0.0)
-            elif scenario == 'same_eigenvalues_different_eigenvectors_rank_K':
-                scv_cov = scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, K,
+            if scenario == 'same_eigenvalues_same_eigenvectors':
+                scv_cov = scv_covs_with_same_eigenvalues_same_eigenvectors_rank_K(N, K,
+                                                                                  alpha=[0.9, 0.9, 0.9, 0.9, 0.9],
+                                                                                  beta=0.0)
+            elif scenario == 'same_eigenvalues_different_eigenvectors':
+                scv_cov = scv_covs_with_same_eigenvalues_different_eigenvectors_rank_K(N, K,
                                                                                        alpha=[0.9, 0.9, 0.9, 0.9, 0.9],
                                                                                        beta=0.0)
             elif scenario == 'different_lambda_min':
@@ -169,7 +207,8 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios):
 
 
 def save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo):
-    scenarios = ['same_eigenvalues_different_eigenvectors_rank_1', 'same_eigenvalues_different_eigenvectors_rank_K',
+    scenarios = ['same_eigenvalues_same_eigenvectors',
+                 'same_eigenvalues_different_eigenvectors',
                  'different_lambda_max', 'different_lambda_min']
 
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']

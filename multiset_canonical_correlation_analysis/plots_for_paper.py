@@ -12,8 +12,8 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
                                   allow_pickle=True).item()
 
     # store violation results for each algorithm
-    scenarios_violations = ['same_eigenvalues_different_eigenvectors_rank_1',
-                            'same_eigenvalues_different_eigenvectors_rank_K',
+    scenarios_violations = ['same_eigenvalues_same_eigenvectors',
+                            'same_eigenvalues_different_eigenvectors',
                             'different_lambda_max', 'different_lambda_min']  # dict keys would be in wrong order
     scenario_labels_violations = [r'A', r'B', r'C', r'D']
     n_scenarios_violations = len(scenario_labels_violations)
@@ -30,7 +30,7 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
                 'runtime']
 
     # store different R results for each algorithm
-    scenarios_different_R = [f'rank_{R}' for R in [1, 2, 5, 10, 100]]
+    scenarios_different_R = [f'rank_{R}' for R in [1, 2, 5, 10, 20, 50, 100]]
     n_scenarios_different_R = len(scenarios_different_R)
     algorithms = list(results_different_R[scenarios_different_R[0]].keys())
     joint_isi_per_algorithm_different_R = {algorithm: np.zeros((n_scenarios_different_R, n_montecarlo)) for algorithm in
@@ -62,11 +62,12 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
 
     # different R
     for algorithm in algorithms:
-        axes[1].errorbar(np.log([1, 2, 5, 10, 100]), np.mean(joint_isi_per_algorithm_different_R[algorithm], axis=1),
+        axes[1].errorbar(np.log([1, 2, 5, 10, 20, 50, 100]),
+                         np.mean(joint_isi_per_algorithm_different_R[algorithm], axis=1),
                          np.std(joint_isi_per_algorithm_different_R[algorithm], axis=1),
                          linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     axes[1].set_xlim([np.log(0.9), np.log(110)])
-    axes[1].set_xticks(np.log([1, 2, 5, 10, 100]), [1, 2, 5, 10, 100], fontsize=12)
+    axes[1].set_xticks(np.log([1, 2, 5, 10, 20, 50, 100]), [1, 2, 5, 10, 20, 50, 100], fontsize=12)
     axes[1].set_xlabel(r'Rank $R$', fontsize=12)
     axes[1].set_ylim([-0.03, 0.63])
     axes[1].set_yticks([0, 0.3, 0.6], [0, 0.3, 0.6], fontsize=12)
@@ -97,7 +98,8 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
 
     # different R
     for algorithm in algorithms:
-        axes[1].errorbar(np.log([1, 2, 5, 10, 100]), np.mean(runtime_per_algorithm_different_R[algorithm], axis=1),
+        axes[1].errorbar(np.log([1, 2, 5, 10, 20, 50, 100]),
+                         np.mean(runtime_per_algorithm_different_R[algorithm], axis=1),
                          np.std(runtime_per_algorithm_different_R[algorithm], axis=1),
                          linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     axes[1].set_xlim([np.log(0.9), np.log(110)])
@@ -128,9 +130,12 @@ def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, filen
     Lambda.append(Lambda3[:, ::-1][:, indices])  # sort descending
     Lambda4 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov4)
     Lambda.append(Lambda4[:, ::-1][:, indices])  # sort descending
-    titles = [r'A. same $\mathbf{\lambda}$ ($R=1$)', r'B. same $\mathbf{\lambda}$ ($R=K$)',
-              r'C. different $\lambda_{\mathrm{max}}$',
-              r'D. different $\lambda_{\mathrm{min}}$']
+    # titles = [r'A. same $\mathbf{\delta}$, same $\mathbf{\Theta}$',
+    #           r'B. same $\mathbf{\delta}$, different $\mathbf{\Theta}$',
+    #           r'C. different $\delta_{\mathrm{max}}$',
+    #           r'D. different $\delta_{\mathrm{min}}$']
+    titles = [r'A. Violating all methods', r'B. Not \texttt{genvar} and \texttt{ssqcor}', r'C. Not \texttt{maxvar}',
+              r'D. Not \texttt{minvar}']
 
     fig, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 2))
     for ax_idx, ax in enumerate(axes):

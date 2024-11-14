@@ -8,10 +8,10 @@ def test_plot_all_eigenvalues_for_paper():
     N = 5
     K = 100
 
-    scv_cov1 = simulations.scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, 1,
+    scv_cov1 = simulations.scv_covs_with_same_eigenvalues_same_eigenvectors_rank_K(N, K,
                                                                                         alpha=[0.9, 0.9, 0.9, 0.9, 0.9],
                                                                                         beta=0.0)
-    scv_cov2 = simulations.scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, K,
+    scv_cov2 = simulations.scv_covs_with_same_eigenvalues_different_eigenvectors_rank_K(N, K,
                                                                                         alpha=[0.9, 0.9, 0.9, 0.9, 0.9],
                                                                                         beta=0.0)
     alpha = 1 - (K - np.array([10, 15, 20, 25, 30])) / (K - 1)

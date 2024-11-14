@@ -14,15 +14,15 @@ def test_one_run_one_algorithm():
 
     algorithm = 'sumcor'
 
-    scenario = 'same_eigenvalues_different_eigenvectors_rank_K'
+    scenario = 'same_eigenvalues_different_eigenvectors'
 
-    if scenario == 'same_eigenvalues_different_eigenvectors_rank_1':
-        scv_cov = simulations.scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, 1,
-                                                                                           alpha=[0.9, 0.9, 0.9, 0.9,
-                                                                                                  0.9],
-                                                                                           beta=0.0)
-    elif scenario == 'same_eigenvalues_different_eigenvectors_rank_K':
-        scv_cov = simulations.scv_covs_with_same_eigenvalues_different_eigenvectors_rank_R(N, K, K,
+    if scenario == 'same_eigenvalues_same_eigenvectors':
+        scv_cov = simulations.scv_covs_with_same_eigenvalues_same_eigenvectors_rank_K(N, K,
+                                                                                      alpha=[0.9, 0.9, 0.9, 0.9,
+                                                                                             0.9],
+                                                                                      beta=0.0)
+    elif scenario == 'same_eigenvalues_different_eigenvectors':
+        scv_cov = simulations.scv_covs_with_same_eigenvalues_different_eigenvectors_rank_K(N, K,
                                                                                            alpha=[0.9, 0.9, 0.9, 0.9,
                                                                                                   0.9],
                                                                                            beta=0.0)
@@ -55,7 +55,8 @@ def test_save_paper_results():
 
     K = 100  # datasets
 
-    scenarios = ['same_eigenvalues_different_eigenvectors_rank_1', 'same_eigenvalues_different_eigenvectors_rank_K',
+    scenarios = ['same_eigenvalues_same_eigenvectors',
+                 'same_eigenvalues_different_eigenvectors',
                  'different_lambda_max', 'different_lambda_min']
-    scenarios += [f'rank_{R}' for R in [1, 2, 5, 10]]
+    scenarios += [f'rank_{R}' for R in [1, 2, 5, 10, 20, 50, 100]]
     simulations.save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios)
