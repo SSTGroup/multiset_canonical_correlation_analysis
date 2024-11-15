@@ -67,8 +67,10 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
                          np.std(joint_isi_per_algorithm_different_R[algorithm], axis=1),
                          linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     axes[1].set_xlim([np.log(0.9), np.log(110)])
-    axes[1].set_xticks(np.log([1, 2, 5, 10, 20, 50, 100]), [1, 2, 5, 10, 20, 50, 100], fontsize=12)
-    axes[1].set_xlabel(r'Rank $R$', fontsize=12)
+    axes[1].set_xticks(np.log([1, 2, 5, 10, 20, 50, 100]),
+                       ['  $R$=1', '  $R$=2', '$R$=5    ', '$R$=10   ', ' $R$=20 ', '$R$=50  ', '   $R$=100'],
+                       fontsize=12)
+    axes[1].set_xlabel(r'Experiment E', fontsize=12)
     axes[1].set_ylim([-0.03, 0.63])
     axes[1].set_yticks([0, 0.3, 0.6], [0, 0.3, 0.6], fontsize=12)
 
@@ -103,8 +105,10 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
                          np.std(runtime_per_algorithm_different_R[algorithm], axis=1),
                          linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     axes[1].set_xlim([np.log(0.9), np.log(110)])
-    axes[1].set_xticks(np.log([1, 2, 5, 10, 100]), [1, 2, 5, 10, 100], fontsize=12)
-    axes[1].set_xlabel(r'Rank $R$', fontsize=12)
+    axes[1].set_xticks(np.log([1, 2, 5, 10, 20, 50, 100]),
+                       ['  $R$=1', '  $R$=2', '$R$=5    ', '$R$=10   ', ' $R$=20 ', '$R$=50  ', '   $R$=100'],
+                       fontsize=12)
+    axes[1].set_xlabel(r'Experiment E', fontsize=12)
     axes[1].set_ylim([-1.5, 31.5])
     axes[1].set_yticks([0, 15, 30], [0, 15, 30], fontsize=12)
 
@@ -119,8 +123,8 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
         plt.show()
 
 
-def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, filename=None):
-    indices = [0, 9, 19, 29, 39, 49, 59, 69, 79, 89, 99]
+def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, scv_cov5, filename=None):
+    indices = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99]
     Lambda = []
     Lambda1 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov1)
     Lambda.append(Lambda1[:, ::-1][:, indices])  # sort descending
@@ -130,40 +134,42 @@ def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, filen
     Lambda.append(Lambda3[:, ::-1][:, indices])  # sort descending
     Lambda4 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov4)
     Lambda.append(Lambda4[:, ::-1][:, indices])  # sort descending
-    # titles = [r'A. same $\mathbf{\delta}$, same $\mathbf{\Theta}$',
-    #           r'B. same $\mathbf{\delta}$, different $\mathbf{\Theta}$',
-    #           r'C. different $\delta_{\mathrm{max}}$',
-    #           r'D. different $\delta_{\mathrm{min}}$']
-    titles = [r'A. Violating all methods', r'B. Not \texttt{genvar} and \texttt{ssqcor}', r'C. Not \texttt{maxvar}',
-              r'D. Not \texttt{minvar}']
+    Lambda5 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov5)
+    Lambda.append(Lambda5[:, ::-1][:, indices])  # sort descending
+    titles = ['Experiment A.' + '\n' + r'same $\mathbf{\delta}_n$, same $\mathbf{\Theta}_n$',
+              'Experiment B.' + '\n' + r'same $\mathbf{\delta}_n$, different $\mathbf{\Theta}_n$',
+              'Experiment C.' + '\n' + r'different $\delta_n^{(\mathrm{max})}$',
+              'Experiment D.' + '\n' + r'different $\delta_n^{(\mathrm{min})}$',
+              'Experiment E.' + '\n' + r'different $\mathbf{\delta}_n$, $R=50$']
 
-    fig, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 2))
+    fig, axes = plt.subplots(nrows=1, ncols=5, figsize=(11, 2.2))
     for ax_idx, ax in enumerate(axes):
 
         for n in range(scv_cov1.shape[2]):
             ax.plot(np.array(indices) + 1, Lambda[ax_idx][4 - n, :], 'D:', markersize=2.5, lw=1,
                     color=f'C{4 - n}', label=r'$\mathbf{\lambda}_' + f'{4 - n + 1}' + r'$')
         ax.set_xlabel(titles[ax_idx], fontsize=12)
+        ax.set_xticks(np.array([0, 50, 100]), [0, 50, 100], fontsize=11)
 
-    axes[0].set_ylim([-10, 110])
-    axes[0].set_yticks(np.array([0, 50, 100]))
-    axes[0].set_yticklabels([0, 50, 100], fontsize=11)
+    axes[0].set_ylim([-0.5, 5.5])
+    axes[0].set_yticks(np.array([0, 2.5, 5]), [0, 2.5, 5], fontsize=11)
 
     axes[1].set_ylim([-0.5, 5.5])
-    axes[1].set_yticks(np.array([0, 2.5, 5]))
-    axes[1].set_yticklabels([0, 2.5, 5], fontsize=11)
+    axes[1].set_yticks(np.array([0, 2.5, 5]), [0, 2.5, 5], fontsize=11)
 
     axes[2].set_ylim([-5, 55])
-    axes[2].set_yticks(np.array([0, 25, 50]))
-    axes[2].set_yticklabels([0, 25, 50], fontsize=11)
+    axes[2].set_yticks(np.array([0, 25, 50]), [0, 25, 50], fontsize=11)
 
     axes[3].set_ylim([-0.1, 1.1])
-    axes[3].set_yticks(np.array([0, 0.5, 1]))
-    axes[3].set_yticklabels([0, 0.5, 1], fontsize=11)
+    axes[3].set_yticks(np.array([0, 0.5, 1]), [0, 0.5, 1], fontsize=11)
+
+    axes[4].set_ylim([-0.1, 11])
+    axes[4].set_yticks(np.array([0, 5, 10]), [0, 5, 10], fontsize=11)
 
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.tight_layout()
+    plt.subplots_adjust(wspace=0.25)
     if filename is not None:
         plt.savefig(f'{filename}.pdf')
     else:
