@@ -94,8 +94,8 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
                          linestyle=(0, (1, 5)), fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     axes[0].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
     axes[0].set_xlabel(r'Experiment', fontsize=12)
-    axes[0].set_ylim([-10, 210])
-    axes[0].set_yticks([0, 100, 200], [0, 100, 200], fontsize=12)
+    axes[0].set_ylim([-50, 1050])
+    axes[0].set_yticks([0, 500, 1000], [0, 500, 1000], fontsize=12)
     axes[0].set_ylabel('runtime in seconds', fontsize=12)
 
     # different R
@@ -109,8 +109,8 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
                        ['  $R$=1', '  $R$=2', '$R$=5    ', '$R$=10   ', ' $R$=20 ', '$R$=50  ', '   $R$=100'],
                        fontsize=12)
     axes[1].set_xlabel(r'Experiment E', fontsize=12)
-    axes[1].set_ylim([-1.5, 31.5])
-    axes[1].set_yticks([0, 15, 30], [0, 15, 30], fontsize=12)
+    axes[1].set_ylim([-.75, 15.75])
+    axes[1].set_yticks([0, 7.5, 15], [0, 7.5, 15], fontsize=12)
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
@@ -163,9 +163,8 @@ def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, scv_c
     axes[3].set_ylim([-0.1, 1.1])
     axes[3].set_yticks(np.array([0, 0.5, 1]), [0, 0.5, 1], fontsize=11)
 
-    axes[4].set_ylim([-0.1, 11])
-    axes[4].set_yticks(np.array([0, 5, 10]), [0, 5, 10], fontsize=11)
-
+    axes[4].set_ylim([-0.5, 5.5])
+    axes[4].set_yticks(np.array([0, 2.5, 5]), [0, 2.5, 5], fontsize=11)
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.tight_layout()
