@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 from .helpers import calculate_eigenvalues_from_ccv_covariance_matrices
 
 
-def plot_results_for_paper(K, n_montecarlo, save=False):
-    results_violations = np.load(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/violations_K_{K}.npy'),
+def plot_results_for_paper(folder, n_montecarlo, save=False):
+    results_violations = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder}/violations.npy'),
                                  allow_pickle=True).item()
-    results_different_R = np.load(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/different_R_K_{K}.npy'),
+    results_different_R = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder}/different_R.npy'),
                                   allow_pickle=True).item()
 
     # store violation results for each algorithm
@@ -78,9 +78,9 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
 
     if save:
         plt.tight_layout()
-        plt.savefig(f'joint_ISI_K_{K}.pdf')
+        plt.savefig(f'joint_ISI.pdf')
     else:
-        plt.title(f'joint ISI for the different experiments (K={K})')
+        plt.title(f'joint ISI for the different experiments')
         plt.tight_layout()
 
     # plot RUNTIME for violations and different R in one figure
@@ -116,9 +116,9 @@ def plot_results_for_paper(K, n_montecarlo, save=False):
 
     if save:
         plt.tight_layout()
-        plt.savefig(f'runtime_K_{K}.pdf')
+        plt.savefig(f'runtime.pdf')
     else:
-        plt.title(f'runtime for the different experiments (K={K})')
+        plt.title(f'runtime for the different experiments')
         plt.tight_layout()
         plt.show()
 

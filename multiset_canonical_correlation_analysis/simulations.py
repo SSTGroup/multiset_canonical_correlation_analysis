@@ -166,6 +166,8 @@ def scv_covs_for_maxvar_minvar(N, K, alpha):
 
 
 def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios):
+    folder = f'K_{K}_T_{T}' ## _true_C
+
     algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
 
     for run in range(n_montecarlo):
@@ -202,11 +204,12 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios):
                 t_end = time.process_time()
 
                 filename = Path(Path(__file__).parent.parent,
-                                f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy')
+                                f'simulation_results/{folder}/{scenario}_{algorithm}_run{run}.npy')
                 np.save(filename, {'joint_isi': _bss_isi(W, A)[1], 'runtime': t_end - t_start})
 
 
-def save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo):
+
+def save_violation_results_from_multiple_files_in_one_file(folder, n_montecarlo):
     scenarios = ['same_eigenvalues_same_eigenvectors',
                  'same_eigenvalues_different_eigenvectors',
                  'different_lambda_max', 'different_lambda_min']
@@ -221,15 +224,15 @@ def save_violation_results_from_multiple_files_in_one_file(K, n_montecarlo):
             runtime = np.zeros(n_montecarlo)
             for run in range(n_montecarlo):
                 filename = Path(Path(__file__).parent.parent,
-                                f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy')
+                                f'simulation_results/{folder}/{scenario}_{algorithm}_run{run}.npy')
                 results_tmp = np.load(filename, allow_pickle=True).item()
                 runtime[run] = results_tmp['runtime']
                 joint_isi[run] = results_tmp['joint_isi']
 
             results[scenario][algorithm] = {'joint_isi': joint_isi, 'runtime': runtime}
 
-    print(f'Save run as simulation_results/K_{K}/violations_K_{K}.npy.')
-    np.save(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/violations_K_{K}.npy'), results)
+    print(f'Save run as simulation_results/{folder}/violations.npy.')
+    np.save(Path(Path(__file__).parent.parent, f'simulation_results/{folder}/violations.npy'), results)
 
 
 def save_different_R_results_from_multiple_files_in_one_file(K, n_montecarlo):
@@ -245,12 +248,12 @@ def save_different_R_results_from_multiple_files_in_one_file(K, n_montecarlo):
             runtime = np.zeros(n_montecarlo)
             for run in range(n_montecarlo):
                 filename = Path(Path(__file__).parent.parent,
-                                f'simulation_results/K_{K}/K_{K}_{scenario}_{algorithm}_run{run}.npy')
+                                f'simulation_results/{folder}/{scenario}_{algorithm}_run{run}.npy')
                 results_tmp = np.load(filename, allow_pickle=True).item()
                 runtime[run] = results_tmp['runtime']
                 joint_isi[run] = results_tmp['joint_isi']
 
             results[scenario][algorithm] = {'joint_isi': joint_isi, 'runtime': runtime}
 
-    print(f'Save run as simulation_results/K_{K}/different_R_K_{K}.npy.')
-    np.save(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/different_R_K_{K}.npy'), results)
+    print(f'Save run as simulation_results/{folder}/different_R.npy.')
+    np.save(Path(Path(__file__).parent.parent, f'simulation_results/{folder}/different_R.npy'), results)
