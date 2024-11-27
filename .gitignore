@@ -1,1 +1,4 @@
 .idea/
+simulation_results/
+multiset_canonical_correlation_analysis.egg-info/
+multiset_canonical_correlation_analysis/__pycache__/

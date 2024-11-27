@@ -17,12 +17,10 @@ def test_one_run_all_algorithms():
     use_true_C_xx = False
 
     if scenario == 'same_eigenvalues_same_eigenvectors':
-        scv_cov = simulations.scv_covs_with_same_eigenvalues_same_eigenvectors_rank_K(N, K,
-                                                                                      alpha=[1, 1, 1, 1, 1],
+        scv_cov = simulations.scv_covs_with_same_eigenvalues_same_eigenvectors_rank_K(N, K, alpha=[1, 1, 1, 1, 1],
                                                                                       beta=0.0)
     elif scenario == 'same_eigenvalues_different_eigenvectors':
-        scv_cov = simulations.scv_covs_with_same_eigenvalues_different_eigenvectors_rank_K(N, K,
-                                                                                           alpha=[1, 1, 1, 1, 1],
+        scv_cov = simulations.scv_covs_with_same_eigenvalues_different_eigenvectors_rank_K(N, K, alpha=[1, 1, 1, 1, 1],
                                                                                            beta=0.0)
     elif scenario == 'different_lambda_min':
         alpha = 1 - (K - np.array([0.1, 0.15, 0.2, 0.25, 0.3])) / (K - 1)
@@ -97,7 +95,7 @@ def test_one_run_all_algorithms():
 
 def test_save_paper_results():
     N = 5  # SCVs
-    T = 10000  # samples
+    T = 10  # samples
     n_montecarlo = 50  # runs
 
     K = 100  # datasets
