@@ -34,3 +34,13 @@ def test_plot_results_for_paper():
     simulations.save_different_R_results_from_multiple_files_in_one_file(folder, n_montecarlo)
     plots_for_paper.plot_results_for_paper(folder, n_montecarlo, save=False)
 
+
+def test_plot_true_estimated_results_for_paper():
+    folder1 = f'K_100_T_10_true_C'
+    folder2 = f'K_100_T_10000'
+
+    n_montecarlo = 50
+
+    simulations.save_violation_results_from_multiple_files_in_one_file(folder1, n_montecarlo)
+    simulations.save_violation_results_from_multiple_files_in_one_file(folder2, n_montecarlo)
+    plots_for_paper.plot_true_estimated_results_for_paper(folder1, folder2, n_montecarlo, save=False)

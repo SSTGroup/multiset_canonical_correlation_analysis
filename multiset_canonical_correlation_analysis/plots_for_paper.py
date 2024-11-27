@@ -123,6 +123,75 @@ def plot_results_for_paper(folder, n_montecarlo, save=False):
         plt.show()
 
 
+def plot_true_estimated_results_for_paper(folder1, folder2, n_montecarlo, save=False):
+    results_violations1 = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder1}/violations.npy'),
+                                  allow_pickle=True).item()
+    results_violations2 = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder2}/violations.npy'),
+                                  allow_pickle=True).item()
+
+    # store violation results for each algorithm
+    scenarios_violations = ['same_eigenvalues_same_eigenvectors',
+                            'same_eigenvalues_different_eigenvectors',
+                            'different_lambda_min',
+                            'different_lambda_max']  # dict keys would be in wrong order
+    scenario_labels_violations = [r'A', r'B', r'C', r'D']
+    n_scenarios_violations = len(scenario_labels_violations)
+    algorithms = list(results_violations1[scenarios_violations[0]].keys())
+    joint_isi_per_algorithm_violations1 = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm in
+                                           algorithms}
+    joint_isi_per_algorithm_violations2 = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm in
+                                           algorithms}
+    # runtime_per_algorithm_violations = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm in
+    #                                     algorithms}
+    for scenario_idx, scenario in enumerate(scenarios_violations):
+        for algorithm_idx, algorithm in enumerate(algorithms):
+            joint_isi_per_algorithm_violations1[algorithm][scenario_idx, :] = results_violations1[scenario][algorithm][
+                'joint_isi']
+            joint_isi_per_algorithm_violations2[algorithm][scenario_idx, :] = results_violations2[scenario][algorithm][
+                'joint_isi']
+            # runtime_per_algorithm_violations[algorithm][scenario_idx, :] = results_violations[scenario][algorithm][
+            #     'runtime']
+
+    # plot JISI for violations using true and estimated covariance matrices in one figure
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(9, 2.5))
+
+    # true
+    for algorithm in algorithms:
+        axes[0].errorbar(np.arange(n_scenarios_violations),
+                         np.mean(joint_isi_per_algorithm_violations1[algorithm], axis=1),
+                         np.std(joint_isi_per_algorithm_violations1[algorithm], axis=1),
+                         linestyle=(0, (1, 5)), fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
+    axes[0].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
+    axes[0].set_xlabel(r'(a) Infinite samples', fontsize=12)
+    axes[0].set_ylim([-0.05, 1.05])
+    axes[0].set_yticks([0, 0.5, 1])
+    axes[0].set_yticklabels([0, 0.5, 1], fontsize=12)
+    axes[0].set_ylabel('jISI', fontsize=12)
+
+    # estimated
+    for algorithm in algorithms:
+        axes[1].errorbar(np.arange(n_scenarios_violations),
+                         np.mean(joint_isi_per_algorithm_violations2[algorithm], axis=1),
+                         np.std(joint_isi_per_algorithm_violations2[algorithm], axis=1),
+                         linestyle=(0, (1, 5)), fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
+    axes[1].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
+    axes[1].set_xlabel(r'(b) $T=10000$ samples', fontsize=12)
+    axes[1].set_ylim([-0.05, 1.05])
+    axes[1].set_yticks([0, 0.5, 1])
+    axes[1].set_yticklabels([0, 0.5, 1], fontsize=12)
+    axes[1].set_ylabel('jISI', fontsize=12)
+
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    if save:
+        plt.tight_layout()
+        plt.savefig(f'joint_ISI.pdf')
+    else:
+        plt.title(f'joint ISI for the different experiments')
+        plt.tight_layout()
+        plt.show()
+
+
 def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, scv_cov5, filename=None):
     indices = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99]
     Lambda = []

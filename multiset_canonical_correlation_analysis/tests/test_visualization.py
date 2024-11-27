@@ -5,7 +5,7 @@ def test_plot_eigenvalues():
     N = 5
     K = 100
 
-    scv_cov = simulations.scv_covs_with_rank_R(N, K, 1, alpha=[0.9, 0.9, 0.9, 0.9, 0.9], beta=0.0)
+    scv_cov = simulations.scv_covs_with_rank_R(N, K, 1, alpha=[0.1,0.1,0.1,0.1,0.1], beta=0.0)
     visualization.plot_eigenvalues(scv_cov, title=f'evs_K_{K}_rank_1', show=False)
 
     scv_cov = simulations.scv_covs_with_rank_R(N, K, K, alpha=[0.9, 0.9, 0.9, 0.9, 0.9], beta=0.0)
