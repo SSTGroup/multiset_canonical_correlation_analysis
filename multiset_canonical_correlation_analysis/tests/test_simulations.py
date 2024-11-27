@@ -6,25 +6,23 @@ import time
 from .. import simulations
 
 
-def test_one_run_one_algorithm():
+def test_one_run_all_algorithms():
     N = 5  # SCVs
     T = 10000  # samples
 
     K = 100  # datasets
 
-    algorithm = 'sumcor'
+    scenario = 'rank_50'
 
-    scenario = 'same_eigenvalues_different_eigenvectors'
+    use_true_C_xx = False
 
     if scenario == 'same_eigenvalues_same_eigenvectors':
         scv_cov = simulations.scv_covs_with_same_eigenvalues_same_eigenvectors_rank_K(N, K,
-                                                                                      alpha=[0.9, 0.9, 0.9, 0.9,
-                                                                                             0.9],
+                                                                                      alpha=[1, 1, 1, 1, 1],
                                                                                       beta=0.0)
     elif scenario == 'same_eigenvalues_different_eigenvectors':
         scv_cov = simulations.scv_covs_with_same_eigenvalues_different_eigenvectors_rank_K(N, K,
-                                                                                           alpha=[0.9, 0.9, 0.9, 0.9,
-                                                                                                  0.9],
+                                                                                           alpha=[1, 1, 1, 1, 1],
                                                                                            beta=0.0)
     elif scenario == 'different_lambda_min':
         alpha = 1 - (K - np.array([0.1, 0.15, 0.2, 0.25, 0.3])) / (K - 1)
@@ -39,12 +37,61 @@ def test_one_run_one_algorithm():
 
     X, A, S = simulations.generate_datasets_from_covariance_matrices(scv_cov, T)
 
+    if use_true_C_xx:
+        # true joint SCV covariance matrix
+        joint_scv_cov = block_diag(*list(scv_cov.T))
+
+        # make the permutation matrix
+        P = np.zeros((N * K, N * K))
+        for n in range(N):
+            for k in range(K):
+                P[n + k * N, n * K + k] = 1
+
+        # generate C_xx from true C_ss
+        C_ss = P @ joint_scv_cov @ P.T
+        A_joint = block_diag(*list(A.T)).T
+        C_xx = A_joint @ C_ss @ A_joint.T
+    else:
+        C_xx = None
+
     t_start = time.process_time()
-    M = simulations.mcca(X, algorithm, verbose=True)[0]
+    M_sumcor = simulations.mcca(X, 'sumcor', verbose=True, C_xx=C_xx)[0]
+    W = np.moveaxis(M_sumcor, [0, 1, 2], [1, 0, 2])
+    t_end = time.process_time()
+
+    print(f'joint_isi sumcor: {_bss_isi(W, A)[1]}')
+    print(f'runtime: {t_end - t_start}')
+
+    t_start = time.process_time()
+    M_maxvar = simulations.mcca(X, 'maxvar', verbose=True, C_xx=C_xx)[0]
+    W = np.moveaxis(M_maxvar, [0, 1, 2], [1, 0, 2])
+    t_end = time.process_time()
+
+    print(f'joint_isi maxvar: {_bss_isi(W, A)[1]}')
+    print(f'runtime: {t_end - t_start}')
+
+    t_start = time.process_time()
+    M = simulations.mcca(X, 'minvar', verbose=True, C_xx=C_xx)[0]
     W = np.moveaxis(M, [0, 1, 2], [1, 0, 2])
     t_end = time.process_time()
 
-    print(f'joint_isi: {_bss_isi(W, A)[1]}')
+    print(f'joint_isi minvar: {_bss_isi(W, A)[1]}')
+    print(f'runtime: {t_end - t_start}')
+
+    t_start = time.process_time()
+    M = simulations.mcca(X, 'ssqcor', verbose=True, C_xx=C_xx)[0]
+    W = np.moveaxis(M, [0, 1, 2], [1, 0, 2])
+    t_end = time.process_time()
+
+    print(f'joint_isi ssqcor: {_bss_isi(W, A)[1]}')
+    print(f'runtime: {t_end - t_start}')
+
+    t_start = time.process_time()
+    M = simulations.mcca(X, 'genvar', verbose=True, C_xx=C_xx)[0]
+    W = np.moveaxis(M, [0, 1, 2], [1, 0, 2])
+    t_end = time.process_time()
+
+    print(f'joint_isi genvar: {_bss_isi(W, A)[1]}')
     print(f'runtime: {t_end - t_start}')
 
 
