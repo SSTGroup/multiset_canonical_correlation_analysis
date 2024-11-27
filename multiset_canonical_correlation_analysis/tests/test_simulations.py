@@ -55,8 +55,10 @@ def test_save_paper_results():
 
     K = 100  # datasets
 
+    use_true_C_xx = True
+
     scenarios = ['same_eigenvalues_same_eigenvectors',
                  'same_eigenvalues_different_eigenvectors',
                  'different_lambda_max', 'different_lambda_min']
-    scenarios += [f'rank_{R}' for R in [1, 2, 5, 10, 20, 50, 100]]
-    simulations.save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios)
+    scenarios += [f'rank_{R}' for R in [1, 2, 5, 10, 20, 50]]
+    simulations.save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, use_true_C_xx)

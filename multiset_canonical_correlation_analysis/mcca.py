@@ -252,7 +252,7 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
         Maximum number of iterations before stopping the optimization
 
     eps : float, optional
-        Threshold value for converge. If change of theta parameter is smaller than eps, optimization will stop.
+        Threshold value for convergence. If change of theta parameter is smaller than eps, optimization will stop.
 
     verbose : bool, optional
         If True, print after how many iterations the algorithm stopped for each SCV

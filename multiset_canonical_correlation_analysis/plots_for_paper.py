@@ -30,7 +30,7 @@ def plot_results_for_paper(folder, n_montecarlo, save=False):
                 'runtime']
 
     # store different R results for each algorithm
-    scenarios_different_R = [f'rank_{R}' for R in [1, 2, 5, 10, 20, 50, 100]]
+    scenarios_different_R = [f'rank_{R}' for R in [1, 2, 5, 10, 20, 50]]
     n_scenarios_different_R = len(scenarios_different_R)
     algorithms = list(results_different_R[scenarios_different_R[0]].keys())
     joint_isi_per_algorithm_different_R = {algorithm: np.zeros((n_scenarios_different_R, n_montecarlo)) for algorithm in
@@ -62,13 +62,13 @@ def plot_results_for_paper(folder, n_montecarlo, save=False):
 
     # different R
     for algorithm in algorithms:
-        axes[1].errorbar(np.log([1, 2, 5, 10, 20, 50, 100]),
+        axes[1].errorbar(np.log([1, 2, 5, 10, 20, 50]),
                          np.mean(joint_isi_per_algorithm_different_R[algorithm], axis=1),
                          np.std(joint_isi_per_algorithm_different_R[algorithm], axis=1),
                          linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
-    axes[1].set_xlim([np.log(0.9), np.log(110)])
-    axes[1].set_xticks(np.log([1, 2, 5, 10, 20, 50, 100]),
-                       ['  $R$=1', '  $R$=2', '$R$=5    ', '$R$=10   ', ' $R$=20 ', '$R$=50  ', '   $R$=100'],
+    axes[1].set_xlim([np.log(0.9), np.log(55)])
+    axes[1].set_xticks(np.log([1, 2, 5, 10, 20, 50]),
+                       ['  $R$=1', '  $R$=2', '$R$=5    ', '$R$=10   ', ' $R$=20 ', '$R$=50  '],
                        fontsize=12)
     axes[1].set_xlabel(r'Experiment E', fontsize=12)
     axes[1].set_ylim([-0.03, 0.63])
@@ -94,19 +94,19 @@ def plot_results_for_paper(folder, n_montecarlo, save=False):
                          linestyle=(0, (1, 5)), fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
     axes[0].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
     axes[0].set_xlabel(r'Experiment', fontsize=12)
-    axes[0].set_ylim([-50, 1050])
-    axes[0].set_yticks([0, 500, 1000], [0, 500, 1000], fontsize=12)
+    axes[0].set_ylim([-25, 525])
+    axes[0].set_yticks([0, 250, 500], [0, 250, 500], fontsize=12)
     axes[0].set_ylabel('runtime in seconds', fontsize=12)
 
     # different R
     for algorithm in algorithms:
-        axes[1].errorbar(np.log([1, 2, 5, 10, 20, 50, 100]),
+        axes[1].errorbar(np.log([1, 2, 5, 10, 20, 50]),
                          np.mean(runtime_per_algorithm_different_R[algorithm], axis=1),
                          np.std(runtime_per_algorithm_different_R[algorithm], axis=1),
                          linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
-    axes[1].set_xlim([np.log(0.9), np.log(110)])
-    axes[1].set_xticks(np.log([1, 2, 5, 10, 20, 50, 100]),
-                       ['  $R$=1', '  $R$=2', '$R$=5    ', '$R$=10   ', ' $R$=20 ', '$R$=50  ', '   $R$=100'],
+    axes[1].set_xlim([np.log(0.95), np.log(52.5)])
+    axes[1].set_xticks(np.log([1, 2, 5, 10, 20, 50]),
+                       ['  $R$=1', '  $R$=2', '$R$=5    ', '$R$=10   ', ' $R$=20 ', '$R$=50  '],
                        fontsize=12)
     axes[1].set_xlabel(r'Experiment E', fontsize=12)
     axes[1].set_ylim([-.75, 15.75])
