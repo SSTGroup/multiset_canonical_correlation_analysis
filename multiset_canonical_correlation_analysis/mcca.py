@@ -5,7 +5,7 @@ from scipy.linalg import sqrtm, block_diag
 from .helpers import vectorize_datasets, check_zero_mean, make_ccvs_unit_variance
 
 
-def mcca(X, algorithm='genvar', max_iter=1000, eps=0.0001, verbose=False):
+def mcca(X, algorithm='genvar', max_iter=1000, eps=0.0001, verbose=False, C_xx=None):
     """
     Perform mCCA on datasets X^[k].
 
@@ -21,6 +21,19 @@ def mcca(X, algorithm='genvar', max_iter=1000, eps=0.0001, verbose=False):
     algorithm : str, optional
         mCCA algorithm: possible options are: 'sumcor', 'maxvar', 'mivar', 'ssqcor', 'genvar'
 
+    max_iter : int
+        Maximum number of iterations for the numerical algorithms (genvar and ssqcor)
+
+    eps : float, optional
+        Threshold value for convergence. If change of theta parameter is smaller than eps, optimization will stop.
+
+    verbose : bool, optional
+        If True, print after how many iterations the algorithm stopped for each SCV
+
+    C_xx : np.ndarray
+        True covariance matrix of the datasets (not estimated using samples). If C_xx is provided, the measured
+        performance is for the infinite sample case.
+
     Returns
     -------
     M : np.ndarray
@@ -32,22 +45,22 @@ def mcca(X, algorithm='genvar', max_iter=1000, eps=0.0001, verbose=False):
     """
 
     if algorithm == 'sumcor':
-        M, Epsilon = mcca_sumcor_nielsen(X)
+        M, Epsilon = mcca_sumcor_nielsen(X, C_xx)
     elif algorithm == 'maxvar':
-        M, Epsilon = mcca_maxvar_minvar_kettenring(X, 'maxvar')
+        M, Epsilon = mcca_maxvar_minvar_kettenring(X, 'maxvar', C_xx)
     elif algorithm == 'minvar':
-        M, Epsilon = mcca_maxvar_minvar_kettenring(X, 'minvar')
+        M, Epsilon = mcca_maxvar_minvar_kettenring(X, 'minvar', C_xx)
     elif algorithm == 'ssqcor':
-        M, Epsilon = mcca_ssqcor_genvar_kettenring(X, 'ssqcor', max_iter, eps, verbose)
+        M, Epsilon = mcca_ssqcor_genvar_kettenring(X, 'ssqcor', max_iter, eps, verbose, C_xx)
     elif algorithm == 'genvar':
-        M, Epsilon = mcca_ssqcor_genvar_kettenring(X, 'genvar', max_iter, eps, verbose)
+        M, Epsilon = mcca_ssqcor_genvar_kettenring(X, 'genvar', max_iter, eps, verbose, C_xx)
     else:
         raise AssertionError("'algorithm' must be 'sumcor', 'maxvar', 'minvar', 'ssqcor', or 'genvar'.")
 
     return M, Epsilon
 
 
-def mcca_sumcor_nielsen(X):
+def mcca_sumcor_nielsen(X, C_xx=None):
     """
     Implementation of mCCA-sumcor according to
     Nielsen, Allan Aasbjerg. "Multiset canonical correlations analysis and multispectral, truly multitemporal remote
@@ -78,17 +91,18 @@ def mcca_sumcor_nielsen(X):
     # make sure data is zero-mean
     check_zero_mean(X)
 
-    # stack datasets -> [x^[1]^T, ..., x^[K]^T]^T
-    X_concat = vectorize_datasets(X)
-    C = np.cov(X_concat, ddof=0)
+    if C_xx is None:
+        # stack datasets -> [x^[1]^T, ..., x^[K]^T]^T
+        X_concat = vectorize_datasets(X)
+        C_xx = np.cov(X_concat, ddof=0)
 
-    # cut diagonal blocks of C and store them in D
-    D = np.zeros_like(C)
+    # cut diagonal blocks of C and store them in D_xx
+    D_xx = np.zeros_like(C_xx)
     for k in range(K):
-        D[k * N:(k + 1) * N, k * N:(k + 1) * N] = C[k * N:(k + 1) * N, k * N:(k + 1) * N]
+        D_xx[k * N:(k + 1) * N, k * N:(k + 1) * N] = C_xx[k * N:(k + 1) * N, k * N:(k + 1) * N]
 
-    # solve GEVD C w_n = lambda_n D w_n
-    eigvals, eigvecs = eigh(C, D)
+    # solve GEVD C w_n = lambda_n D_xx w_n
+    eigvals, eigvecs = eigh(C_xx, D_xx)
 
     # take only N largest eigenvalues and corresponding eigenvectors
     eigvecs = eigvecs[:, ::-1]  # sort ascending
@@ -110,7 +124,7 @@ def mcca_sumcor_nielsen(X):
     return M, Epsilon
 
 
-def mcca_maxvar_minvar_kettenring(X, algorithm):
+def mcca_maxvar_minvar_kettenring(X, algorithm, C_xx=None):
     """
     Implementation of mCCA-maxvar and mCCA-minvar according to
     Kettenring, J. R. (1971). Canonical analysis of several sets of variables. Biometrika, 58(3), 433-451.
@@ -142,17 +156,30 @@ def mcca_maxvar_minvar_kettenring(X, algorithm):
     # make sure data is zero-mean
     check_zero_mean(X)
 
-    # whiten x^[k] -> y^[k] (using Mahalanobis whitening)
-    Y = np.zeros_like(X)
-    for k in range(K):
-        # ddof=0 means dividing by T, not T-1
-        Y[:, :, k] = np.linalg.inv(sqrtm(np.cov(X[:, :, k], ddof=0))) @ X[:, :, k]
+    if C_xx is None:
+        # stack datasets -> [x^[1]^T, ..., x^[K]^T]^T
+        X_concat = vectorize_datasets(X)
+        C_xx = np.cov(X_concat, ddof=0)
 
-    # concatenate whitened datasets vertically
-    Y_concat = vectorize_datasets(Y)
+        # whiten x^[k] -> y^[k] (using Mahalanobis whitening)
+        Y = np.zeros_like(X)
+        for k in range(K):
+            # ddof=0 means dividing by T, not T-1
+            Y[:, :, k] = np.linalg.inv(sqrtm(C_xx[k * N:(k + 1) * N, k * N:(k + 1) * N])) @ X[:, :, k]
 
-    # calculate C_yy = E[y y^T]
-    C_yy = np.cov(Y_concat, ddof=0)
+        # concatenate whitened datasets vertically
+        Y_concat = vectorize_datasets(Y)
+
+        # calculate C_yy = E[y y^T]
+        C_yy = np.cov(Y_concat, ddof=0)
+
+    else:
+        # cut diagonal blocks of C_xx and store them in D_xx
+        D_xx = np.zeros_like(C_xx)
+        for k in range(K):
+            D_xx[k * N:(k + 1) * N, k * N:(k + 1) * N] = C_xx[k * N:(k + 1) * N, k * N:(k + 1) * N]
+
+        C_yy = np.linalg.inv(sqrtm(D_xx)) @ C_xx @ np.linalg.inv(sqrtm(D_xx))
 
     # calculate the canonical variates in a deflationary way for each stage n = 1...N
     V = np.zeros((N * K, N))
@@ -197,17 +224,17 @@ def mcca_maxvar_minvar_kettenring(X, algorithm):
     # calculating demixing matrices to multiply with x^[k] instead of y^[k]
     M = np.zeros_like(V_tilde)
     for k in range(K):
-        M[:, :, k] = np.linalg.inv(sqrtm(np.cov(X[:, :, k], ddof=0))) @ V_tilde[:, :, k]
+        M[:, :, k] = np.linalg.inv(sqrtm(C_xx[k * N:(k + 1) * N, k * N:(k + 1) * N])) @ V_tilde[:, :, k]
 
     # calculate canonical variates (they already have unit variance)
-    Epsilon = np.zeros_like(Y)
+    Epsilon = np.zeros_like(X)
     for k in range(K):
         Epsilon[:, :, k] = M[:, :, k].T @ X[:, :, k]
 
     return M, Epsilon
 
 
-def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbose=False):
+def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbose=False, C_xx=None):
     """
     Implementation of mCCA-ssqcor and mCCA-genvar according to
     Kettenring, J. R. (1971). Canonical analysis of several sets of variables. Biometrika, 58(3), 433-451.
@@ -245,17 +272,30 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
     # make sure data is zero-mean
     check_zero_mean(X)
 
-    # whiten x^[k] -> y^[k] (using Mahalanobis whitening)
-    Y = np.zeros_like(X)
-    for k in range(K):
-        # ddof=0 means dividing by T, not T-1
-        Y[:, :, k] = np.linalg.inv(sqrtm(np.cov(X[:, :, k], ddof=0))) @ X[:, :, k]
+    if C_xx is None:
+        # stack datasets -> [x^[1]^T, ..., x^[K]^T]^T
+        X_concat = vectorize_datasets(X)
+        C_xx = np.cov(X_concat, ddof=0)
 
-    # concatenate whitened datasets vertically
-    Y_concat = vectorize_datasets(Y)
+        # whiten x^[k] -> y^[k] (using Mahalanobis whitening)
+        Y = np.zeros_like(X)
+        for k in range(K):
+            # ddof=0 means dividing by T, not T-1
+            Y[:, :, k] = np.linalg.inv(sqrtm(C_xx[k * N:(k + 1) * N, k * N:(k + 1) * N])) @ X[:, :, k]
 
-    # calculate C_yy = E[y y^T]
-    C_yy = np.cov(Y_concat, ddof=0)
+        # concatenate whitened datasets vertically
+        Y_concat = vectorize_datasets(Y)
+
+        # calculate C_yy = E[y y^T]
+        C_yy = np.cov(Y_concat, ddof=0)
+
+    else:
+        # cut diagonal blocks of C_xx and store them in D_xx
+        D_xx = np.zeros_like(C_xx)
+        for k in range(K):
+            D_xx[k * N:(k + 1) * N, k * N:(k + 1) * N] = C_xx[k * N:(k + 1) * N, k * N:(k + 1) * N]
+
+        C_yy = np.linalg.inv(sqrtm(D_xx)) @ C_xx @ np.linalg.inv(sqrtm(D_xx))
 
     # initialize transformation matrices (that would transform Y)
     V = 1 / np.sqrt(N) * np.ones((N, N, K))
@@ -314,7 +354,7 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
     # find transformation matrices for X^[k] instead of Y^[k]
     M = np.zeros((N, N, K))
     for k in range(K):
-        M[:, :, k] = np.linalg.inv(sqrtm(np.cov(X[:, :, k], ddof=0))) @ V[:, :, k]
+        M[:, :, k] = np.linalg.inv(sqrtm(C_xx[k * N:(k + 1) * N, k * N:(k + 1) * N])) @ V[:, :, k]
 
     # calculate canonical variates (they already have unit variance)
     Epsilon = np.zeros_like(X)
