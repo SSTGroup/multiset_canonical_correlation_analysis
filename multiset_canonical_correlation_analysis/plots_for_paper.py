@@ -179,20 +179,21 @@ def plot_true_estimated_results_for_paper(folder1, folder2, n_montecarlo, save=F
     axes[1].set_ylim([-0.05, 1.05])
     axes[1].set_yticks([0, 0.5, 1])
     axes[1].set_yticklabels([0, 0.5, 1], fontsize=12)
-    axes[1].set_ylabel('jISI', fontsize=12)
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     if save:
         plt.tight_layout()
+        plt.subplots_adjust(wspace=0.2)
         plt.savefig(f'joint_ISI.pdf')
     else:
         plt.title(f'joint ISI for the different experiments')
         plt.tight_layout()
+        plt.subplots_adjust(wspace=0.2)
         plt.show()
 
 
-def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, scv_cov5, filename=None):
+def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, filename=None):
     indices = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99]
     Lambda = []
     Lambda1 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov1)
@@ -203,15 +204,12 @@ def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, scv_c
     Lambda.append(Lambda3[:, ::-1][:, indices])  # sort descending
     Lambda4 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov4)
     Lambda.append(Lambda4[:, ::-1][:, indices])  # sort descending
-    Lambda5 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov5)
-    Lambda.append(Lambda5[:, ::-1][:, indices])  # sort descending
-    titles = ['Experiment A.' + '\n' + r'same $\mathbf{\delta}_n$, same $\mathbf{\Theta}_n$',
-              'Experiment B.' + '\n' + r'same $\mathbf{\delta}_n$, different $\mathbf{\Theta}_n$',
-              'Experiment C.' + '\n' + r'different $\delta_n^{(\mathrm{max})}$',
-              'Experiment D.' + '\n' + r'different $\delta_n^{(\mathrm{min})}$',
-              'Experiment E.' + '\n' + r'different $\mathbf{\delta}_n$, $R=50$']
+    titles = ['Experiment A.' + '\n' + r'same $\mathbf{\lambda}_n$, same $\mathbf{\Theta}_n$',
+              'Experiment B.' + '\n' + r'same $\mathbf{\lambda}_n$, different $\mathbf{\Theta}_n$',
+              'Experiment C.' + '\n' + r'different $\lambda_n^{(\mathrm{min})}$',
+              'Experiment D.' + '\n' + r'different $\lambda_n^{(\mathrm{max})}$']
 
-    fig, axes = plt.subplots(nrows=1, ncols=5, figsize=(11, 2.2))
+    fig, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 2.2))
     for ax_idx, ax in enumerate(axes):
 
         for n in range(scv_cov1.shape[2]):
@@ -226,14 +224,11 @@ def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, scv_c
     axes[1].set_ylim([-0.5, 5.5])
     axes[1].set_yticks(np.array([0, 2.5, 5]), [0, 2.5, 5], fontsize=11)
 
-    axes[2].set_ylim([-5, 55])
-    axes[2].set_yticks(np.array([0, 25, 50]), [0, 25, 50], fontsize=11)
+    axes[2].set_ylim([-0.1, 1.1])
+    axes[2].set_yticks(np.array([0, 0.5, 1]), [0, 0.5, 1], fontsize=11)
 
-    axes[3].set_ylim([-0.1, 1.1])
-    axes[3].set_yticks(np.array([0, 0.5, 1]), [0, 0.5, 1], fontsize=11)
-
-    axes[4].set_ylim([-0.5, 5.5])
-    axes[4].set_yticks(np.array([0, 2.5, 5]), [0, 2.5, 5], fontsize=11)
+    axes[3].set_ylim([-5, 55])
+    axes[3].set_yticks(np.array([0, 25, 50]), [0, 25, 50], fontsize=11)
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.tight_layout()
