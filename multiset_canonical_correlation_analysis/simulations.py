@@ -135,7 +135,7 @@ def scv_covs_with_rank_R(N, K, R, alpha, beta):
             temp_variability_term = np.random.randn(K, K)
             temp_variability_term /= np.linalg.norm(temp_variability_term, axis=1, keepdims=True)
             scv_cov[:, :, n] = alpha[n] * (temp_rank_term @ temp_rank_term.T) + beta * (
-                    temp_variability_term @ temp_variability_term.T) ** 2 + (1 - alpha[n] - beta) * np.eye(K)
+                    temp_variability_term @ temp_variability_term.T) + (1 - alpha[n] - beta) * np.eye(K)
 
         # we assume that for R=1, if alpha is chosen properly, this does not need to be checked
         # (as for violating sumcor, the code would not run if this was tested)
