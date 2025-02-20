@@ -5,7 +5,7 @@ from pathlib import Path
 from independent_vector_analysis.helpers_iva import _bss_isi
 from independent_vector_analysis.data_generation import MGGD_generation
 
-from .helpers import calculate_eigenvalues_from_ccv_covariance_matrices, calculate_matrix_ranks
+from .helpers import calculate_eigenvalues_from_ccv_covariance_matrices
 from .mcca import mcca
 
 import time
