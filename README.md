@@ -21,7 +21,7 @@ Required third party packages will automatically be installed.
 First, the imports:
 
     import numpy as np
-    from multiset_canonical_correlation_analysis import mCCA, simulations
+    from multiset_canonical_correlation_analysis import mcca, simulations
     from independent_vector_analysis.helpers_iva import _bss_isi
 
 
