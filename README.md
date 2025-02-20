@@ -46,7 +46,7 @@ Apply mCCA-genvar to find the canonical variables.
 
 where
 * `transform` : transformation matrix of dimensions N x N x K
-* `U` : canonical variables of dimensions N x T x K, with `U[:,:,k] = T[:,:,k].T @ X[:,:,k]`
+* `U` : canonical variables of dimensions N x T x K, with `U[:,:,k] = transform[:,:,k].T @ X[:,:,k]`
  
 Calculate the jISI to evaluate JBSS performance.
 
