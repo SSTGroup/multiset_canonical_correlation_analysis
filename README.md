@@ -42,10 +42,10 @@ where
 
 Apply mCCA-genvar to find the canonical variables.
 
-    T, U = mcca.mcca(X, 'genvar')
+    transform, U = mcca.mcca(X, 'genvar')
 
 where
-* `T` : transformation matrix of dimensions N x N x K
+* `transform` : transformation matrix of dimensions N x N x K
 * `U` : canonical variables of dimensions N x T x K, with `U[:,:,k] = T[:,:,k].T @ X[:,:,k]`
  
 Calculate the jISI to evaluate JBSS performance.
