@@ -50,7 +50,7 @@ where
  
 Calculate the jISI to evaluate JBSS performance.
 
-    W = np.moveaxis(T, [0, 1, 2], [1, 0, 2])
+    W = np.moveaxis(transform, [0, 1, 2], [1, 0, 2])
     print(f'joint_isi genvar: {_bss_isi(W, A)[1]}')
 
 A jISI smaller than 0.05 means successful JBSS, i.e., the canonical variables are permuted and scaled versions of the true sources.
