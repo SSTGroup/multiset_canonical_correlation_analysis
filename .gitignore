@@ -2,3 +2,5 @@
 simulation_results/
 multiset_canonical_correlation_analysis.egg-info/
 multiset_canonical_correlation_analysis/__pycache__/
+multiset_canonical_correlation_analysis/data/
+multiset_canonical_correlation_analysis/tests/__pycache__/
