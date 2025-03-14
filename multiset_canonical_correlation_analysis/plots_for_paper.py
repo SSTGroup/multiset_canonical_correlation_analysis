@@ -109,8 +109,6 @@ def plot_results_for_paper(folder, n_montecarlo, save=False):
                        ['  $R$=1', '  $R$=2', '$R$=5    ', '$R$=10   ', ' $R$=20 ', '$R$=50  '],
                        fontsize=12)
     axes[1].set_xlabel(r'Experiment E', fontsize=12)
-    axes[1].set_ylim([-.75, 15.75])
-    axes[1].set_yticks([0, 7.5, 15], [0, 7.5, 15], fontsize=12)
 
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 

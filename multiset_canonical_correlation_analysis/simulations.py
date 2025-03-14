@@ -1,11 +1,12 @@
 import numpy as np
 from scipy.stats import random_correlation
+from scipy.linalg import block_diag
 from pathlib import Path
 
 from independent_vector_analysis.helpers_iva import _bss_isi
 from independent_vector_analysis.data_generation import MGGD_generation
 
-from .helpers import calculate_eigenvalues_from_ccv_covariance_matrices, calculate_matrix_ranks
+from .helpers import calculate_eigenvalues_from_ccv_covariance_matrices
 from .mcca import mcca
 
 import time
@@ -21,9 +22,11 @@ def generate_datasets_from_covariance_matrices(scv_cov, T):
         S_temp -= np.mean(S_temp, axis=1, keepdims=True)
         S_temp /= np.std(S_temp, axis=1, keepdims=True)
         S[n, :, :] = S_temp.T
-    # create mixing matrices
+
+    # generate mixing matrices
     A = np.random.randn(N, N, K)
 
+    # generate observed datasets
     X = np.zeros((N, T, K))
     for k in range(K):
         X[:, :, k] = A[:, :, k] @ S[:, :, k]

@@ -1,9 +1,10 @@
 import numpy as np
+from scipy.linalg import block_diag
 
 from independent_vector_analysis.helpers_iva import _bss_isi
 import time
 
-from .. import simulations
+from .. import simulations, mcca
 
 
 def test_one_run_all_algorithms():
@@ -12,7 +13,7 @@ def test_one_run_all_algorithms():
 
     K = 100  # datasets
 
-    scenario = 'rank_50'
+    scenario = 'different_lambda_max'
 
     use_true_C_xx = False
 
@@ -53,7 +54,7 @@ def test_one_run_all_algorithms():
         C_xx = None
 
     t_start = time.process_time()
-    M_sumcor = simulations.mcca(X, 'sumcor', verbose=True, C_xx=C_xx)[0]
+    M_sumcor = mcca.mcca(X, 'sumcor', verbose=True, C_xx=C_xx)[0]
     W = np.moveaxis(M_sumcor, [0, 1, 2], [1, 0, 2])
     t_end = time.process_time()
 
@@ -61,7 +62,7 @@ def test_one_run_all_algorithms():
     print(f'runtime: {t_end - t_start}')
 
     t_start = time.process_time()
-    M_maxvar = simulations.mcca(X, 'maxvar', verbose=True, C_xx=C_xx)[0]
+    M_maxvar = mcca.mcca(X, 'maxvar', verbose=True, C_xx=C_xx)[0]
     W = np.moveaxis(M_maxvar, [0, 1, 2], [1, 0, 2])
     t_end = time.process_time()
 
@@ -69,7 +70,7 @@ def test_one_run_all_algorithms():
     print(f'runtime: {t_end - t_start}')
 
     t_start = time.process_time()
-    M = simulations.mcca(X, 'minvar', verbose=True, C_xx=C_xx)[0]
+    M = mcca.mcca(X, 'minvar', verbose=True, C_xx=C_xx)[0]
     W = np.moveaxis(M, [0, 1, 2], [1, 0, 2])
     t_end = time.process_time()
 
@@ -77,7 +78,7 @@ def test_one_run_all_algorithms():
     print(f'runtime: {t_end - t_start}')
 
     t_start = time.process_time()
-    M = simulations.mcca(X, 'ssqcor', verbose=True, C_xx=C_xx)[0]
+    M = mcca.mcca(X, 'ssqcor', verbose=True, C_xx=C_xx)[0]
     W = np.moveaxis(M, [0, 1, 2], [1, 0, 2])
     t_end = time.process_time()
 
@@ -85,7 +86,7 @@ def test_one_run_all_algorithms():
     print(f'runtime: {t_end - t_start}')
 
     t_start = time.process_time()
-    M = simulations.mcca(X, 'genvar', verbose=True, C_xx=C_xx)[0]
+    M = mcca.mcca(X, 'genvar', verbose=True, C_xx=C_xx)[0]
     W = np.moveaxis(M, [0, 1, 2], [1, 0, 2])
     t_end = time.process_time()
 
