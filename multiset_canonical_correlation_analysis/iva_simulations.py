@@ -200,9 +200,16 @@ def print_jisi_and_plot_W_change_of_multiple_runs(folder):
 
                 if type(W_change[run]) is dict:
                     for n in range(len(W_change[run].keys())):
-                        plt.plot(W_change[run][n], label=f'{W_change[run][n][-1]:1.1e}')
+                        if len(W_change[run][n]) < 1024: # print last value of W_change only if not converged
+                            plt.plot(W_change[run][n])
+                        else:
+                            plt.plot(W_change[run][n], label=f'{W_change[run][n][-1]:1.1e}')
+
                 else:
-                    plt.plot(W_change[run], label=f'{W_change[run][-1]:1.1e}')
+                    if len(W_change[run]) < 1024:
+                        plt.plot(W_change[run])
+                    else:
+                        plt.plot(W_change[run], label=f'{W_change[run][-1]:1.1e}')
             plt.title(f'{which_ivag} with {update} update.')
             plt.legend()
     plt.show()
