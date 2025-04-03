@@ -131,7 +131,7 @@ def plot_eigenvalues(scv_cov, title=None, show=True):
 
     for n in range(scv_cov.shape[2]):
         plt.plot(np.arange(1, Lambda.shape[1] + 1), Lambda[n, :], 'D:', markersize=2.5, lw=1,
-                 label=r'$\mathbf{\lambda}_' + f'{n + 1}' + r'$')
+                 label=r'$\mathbf{\lambda}_{' + f'{n + 1}' + r'}$')
     plt.legend()
     if title is not None:
         plt.title(title)
