@@ -93,7 +93,7 @@ def test_save_results_one_run_checkerboard():
                              R_xx=R_xx, whiten=False, parallel=False)
     s_hat_cov_ivag = results['scv_cov']
     jisi = results['joint_isi']
-    filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/new-ivag_{update}.npy')
+    filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/n-o-ivag_{update}.npy')
     np.save(filename, {'scv_cov': s_hat_cov_ivag, 'joint_isi': jisi})
 
     # orthogonal IVA-G
@@ -136,7 +136,7 @@ def test_save_results_one_run_checkerboard():
 def test_plot_one_run_scv_covs_checkerboard():
     folder = f'T_10000_alpha_07_beta_03'
 
-    algorithms = ['true', 'ivag', 'new-ivag', 'o-ivag', 'd-o-ivag', 'genvar']
+    algorithms = ['true', 'ivag', 'n-o-ivag', 'o-ivag', 'd-o-ivag', 'genvar']
     update = 'newton'
     n_cols = 10
     n_rows = len(algorithms)
