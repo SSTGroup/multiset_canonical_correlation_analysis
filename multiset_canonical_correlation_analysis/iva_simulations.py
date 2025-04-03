@@ -200,7 +200,7 @@ def print_jisi_and_plot_W_change_of_multiple_runs(folder):
 
                 if type(W_change[run]) is dict:
                     for n in range(len(W_change[run].keys())):
-                        if len(W_change[run][n]) < 1024: # print last value of W_change only if not converged
+                        if len(W_change[run][n]) < 1024:  # print last value of W_change only if not converged
                             plt.plot(W_change[run][n])
                         else:
                             plt.plot(W_change[run][n], label=f'{W_change[run][n][-1]:1.1e}')
@@ -226,17 +226,34 @@ def inspect_one_run(folder, run_idx):
 
     which_ivags = ['n-o-iva_g', 'o-iva_g', 'd-o-iva_g']
     updates = ['newton', 'gradient', 'norm_gradient']
-    plt.figure()
     for which_ivag_idx, which_ivag in enumerate(which_ivags):
         for update_idx, update in enumerate(updates):
             filename = Path(Path(__file__).parent.parent,
                             f'simulation_results/{folder}/{which_ivag}_{update}_run{run_idx}.npy')
-            W_change = np.load(filename, allow_pickle=True).item()['W_change']
+
+            res = np.load(filename, allow_pickle=True).item()
+            jisi = res['joint_isi']
+            print(which_ivag, update)
+            print(f'{np.mean(jisi):1.1e}\pm{np.std(jisi):1.1e}')
+
+            W_change = res['W_change']
+            plt.figure()
             if type(W_change) is dict:
                 for n in range(len(W_change.keys())):
-                    plt.plot(W_change[n], 'r', label=f'{which_ivag} {update}')
+                    if len(W_change[n]) < 1024:  # print last value of W_change only if not converged
+                        plt.plot(W_change[n])
+                    else:
+                        plt.plot(W_change[n], label=f'{W_change[n][-1]:1.1e}')
+
             else:
-                plt.plot(W_change, label=f'{which_ivag} {update}')
-    plt.legend()
+                if len(W_change) < 1024:
+                    plt.plot(W_change)
+                else:
+                    plt.plot(W_change, label=f'{W_change[-1]:1.1e}')
+            plt.title(f'{which_ivag} with {update} update: jISI = {jisi:1.1e}')
+            plt.legend()
+    plt.show()
+    pass
+
     plt.show()
     pass
