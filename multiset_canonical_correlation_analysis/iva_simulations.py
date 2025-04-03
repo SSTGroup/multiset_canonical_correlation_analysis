@@ -130,7 +130,7 @@ def save_results_of_multiple_runs(N, K, T, R, alpha, beta, n_montecarlo, folder,
         for which_ivag in which_ivags:
             for update in updates:
                 results = consistent_iva(X, which_iva=which_ivag, W_init=W_init, n_runs=n_runs_iva, A=A,
-                                         R_xx=R_xx, whiten=False, parallel=False, update=update)
+                                         R_xx=R_xx, whiten=False, parallel=False, opt_approach=update)
                 filename = Path(Path(__file__).parent.parent,
                                 f'simulation_results/{folder}/{which_ivag}_{update}_run{run}.npy')
                 np.save(filename, {key: results[key] for key in ('joint_isi', 'W_change', 'scv_cov')})

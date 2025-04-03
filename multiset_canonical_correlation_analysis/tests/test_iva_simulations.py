@@ -85,31 +85,31 @@ def test_save_results_one_run_checkerboard():
                              R_xx=R_xx, whiten=False, parallel=False)
     s_hat_cov_ivag = results['scv_cov']
     jisi = results['joint_isi']
-    filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/ivag.npy')
+    filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/ivag_{update}.npy')
     np.save(filename, {'scv_cov': s_hat_cov_ivag, 'joint_isi': jisi})
 
     # new IVA-G (update demixing vectors after calculating all gradients and Hessians)
-    results = consistent_iva(X, which_iva='new-iva_g', W_init=W_init, n_runs=n_runs_iva, A=A, update=update,
+    results = consistent_iva(X, which_iva='n-o-iva_g', W_init=W_init, n_runs=n_runs_iva, A=A, opt_approach=update,
                              R_xx=R_xx, whiten=False, parallel=False)
     s_hat_cov_ivag = results['scv_cov']
     jisi = results['joint_isi']
-    filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/new-ivag.npy')
+    filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/new-ivag_{update}.npy')
     np.save(filename, {'scv_cov': s_hat_cov_ivag, 'joint_isi': jisi})
 
     # orthogonal IVA-G
-    results = consistent_iva(X, which_iva='o-iva_g', W_init=W_init, n_runs=n_runs_iva, A=A, update=update,
+    results = consistent_iva(X, which_iva='o-iva_g', W_init=W_init, n_runs=n_runs_iva, A=A, opt_approach=update,
                              R_xx=R_xx, whiten=False, parallel=False)
     s_hat_cov_ivag = results['scv_cov']
     jisi = results['joint_isi']
-    filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/o-ivag.npy')
+    filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/o-ivag_{update}.npy')
     np.save(filename, {'scv_cov': s_hat_cov_ivag, 'joint_isi': jisi})
 
     # deflationary orthogonal IVA-G
-    results = consistent_iva(X, which_iva='d-o-iva_g', W_init=W_init, n_runs=n_runs_iva, A=A, update=update,
+    results = consistent_iva(X, which_iva='d-o-iva_g', W_init=W_init, n_runs=n_runs_iva, A=A, opt_approach=update,
                              R_xx=R_xx, whiten=False, parallel=False)
     s_hat_cov_ivag = results['scv_cov']
     jisi = results['joint_isi']
-    filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/d-o-ivag.npy')
+    filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/d-o-ivag_{update}.npy')
     np.save(filename, {'scv_cov': s_hat_cov_ivag, 'joint_isi': jisi})
 
     # include also genvar for complete picture
@@ -129,7 +129,7 @@ def test_save_results_one_run_checkerboard():
                 s_hat_cov[k2, k1, n] = s_hat_cov[k1, k2, n]  # sigma_n is symemtric
 
     jisi = _bss_isi(W, A)[1]
-    filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/genvar.npy')
+    filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/genvar_{update}.npy')
     np.save(filename, {'scv_cov': s_hat_cov, 'joint_isi': jisi})
 
 
@@ -137,13 +137,14 @@ def test_plot_one_run_scv_covs_checkerboard():
     folder = f'T_10000_alpha_07_beta_03'
 
     algorithms = ['true', 'ivag', 'new-ivag', 'o-ivag', 'd-o-ivag', 'genvar']
+    update = 'newton'
     n_cols = 10
     n_rows = len(algorithms)
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(2 * n_cols, 2 * n_rows))
 
     # Add data to image grid and plot
     for algorithm_idx, algorithm in enumerate(algorithms):
-        filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/{algorithm}.npy')
+        filename = Path(Path(__file__).parent.parent.parent, f'simulation_results/{folder}/{algorithm}_{update}.npy')
         res = np.load(filename, allow_pickle=True).item()
         scv_cov = res['scv_cov']
 
@@ -162,14 +163,22 @@ def test_compare_multiple_iva_options():
     K = 20  # datasets
     T = 10000  # samples
 
-    n_montecarlo = 1  # runs
+    n_montecarlo = 20  # runs
 
     R = 1
     alpha = 0.9
     beta = 0.01
     folder = f'T_10000_Bensmodel_alpha_09_beta_001'
 
-    iva_simulations.save_results(N, K, T, R, alpha, beta, n_montecarlo, folder, use_true_R_xx=True, n_runs_iva=1)
+    iva_simulations.save_results_of_multiple_runs(N, K, T, R, alpha, beta, n_montecarlo, folder, use_true_R_xx=True, n_runs_iva=20)
+
+
+def test_save_and_print_results_from_multiple_files_in_one_file():
+    n_montecarlo = 20
+    folder = f'T_10000_Bensmodel_alpha_09_beta_001_new'
+
+    iva_simulations.save_results_from_multiple_files_in_one_file(folder, n_montecarlo)
+    iva_simulations.print_jisi_and_plot_W_change_of_multiple_runs(folder)
 
 
 def test_inspect_one_run():
@@ -177,9 +186,3 @@ def test_inspect_one_run():
     iva_simulations.inspect_one_run(folder, run_idx=0)
 
 
-def test_save_and_print_results_from_multiple_files_in_one_file():
-    n_montecarlo = 1
-    folder = f'T_10000_Bensmodel_alpha_09_beta_001'
-
-    iva_simulations.save_violation_results_from_multiple_files_in_one_file(folder, n_montecarlo)
-    iva_simulations.print_jisi_and_plot_W_change(folder)
