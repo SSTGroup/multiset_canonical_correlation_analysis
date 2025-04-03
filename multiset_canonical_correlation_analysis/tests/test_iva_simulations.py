@@ -32,7 +32,7 @@ def test_save_results_one_run_checkerboard():
 
     folder = f'T_{T}_alpha_07_beta_03'
 
-    # scv_cov = generate_scvs_with_subspace_structure(alpha=0.7, beta=0.3)
+    # scv_cov = iva_simulations.generate_scvs_with_subspace_structure(alpha=0.7, beta=0.3)
     # plot_scv_covs(scv_cov, n_cols=5)
     #
     # X, A, S = generate_datasets_from_covariance_matrices(scv_cov, T, orthogonal_A=True)
