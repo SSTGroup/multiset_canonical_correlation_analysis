@@ -155,12 +155,15 @@ def plot_true_estimated_results_for_paper(folder1, folder2, n_montecarlo, save=F
     # plot JISI for violations using true and estimated covariance matrices in one figure
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(9, 2.5))
 
+    colors = ['C0', 'C3', 'C2', 'C1', 'C4']
     # true
-    for algorithm in algorithms:
+    axes[0].axhline(y=0.05, color='tab:gray', linestyle=':', linewidth=1.1)
+    for (idx, algorithm) in enumerate(algorithms):
         axes[0].errorbar(np.arange(n_scenarios_violations),
                          np.mean(joint_isi_per_algorithm_violations1[algorithm], axis=1),
                          np.std(joint_isi_per_algorithm_violations1[algorithm], axis=1),
-                         linestyle=(0, (1, 5)), fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
+                         color=colors[idx], linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1,
+                         label=f'{algorithm}')
     axes[0].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
     axes[0].set_xlabel(r'(a) Infinite samples', fontsize=12)
     axes[0].set_ylim([-0.05, 1.05])
@@ -169,29 +172,32 @@ def plot_true_estimated_results_for_paper(folder1, folder2, n_montecarlo, save=F
     axes[0].set_ylabel('jISI', fontsize=12)
 
     # estimated
-    for algorithm in algorithms:
+    axes[1].axhline(y=0.05, color='tab:gray', linestyle=':', linewidth=1.1)
+    for (idx, algorithm) in enumerate(algorithms):
         axes[1].errorbar(np.arange(n_scenarios_violations),
                          np.mean(joint_isi_per_algorithm_violations2[algorithm], axis=1),
                          np.std(joint_isi_per_algorithm_violations2[algorithm], axis=1),
-                         linestyle=(0, (1, 5)), fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
+                         color=colors[idx], linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1,
+                         label=f'{algorithm}')
     axes[1].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
-    axes[1].set_xlabel(r'(b) $T=10000$ samples', fontsize=12)
+    axes[1].set_xlabel(r'(b) $V=10000$ samples', fontsize=12)
     axes[1].set_ylim([-0.05, 1.05])
     axes[1].set_yticks([0, 0.5, 1])
     axes[1].set_yticklabels([0, 0.5, 1], fontsize=12)
 
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
 
     if save:
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.2)
+        matplot2tikz.save('joint_ISI.tex', encoding='utf8', axis_width='7.5cm', axis_height='5cm', standalone=True)
         plt.savefig(f'joint_ISI.pdf')
     else:
         plt.title(f'joint ISI for the different experiments')
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.2)
         plt.show()
-
+        
 
 def plot_true_estimated_rank_R_results_for_paper(folder1, folder2, n_montecarlo, save=False):
     results_differentR1 = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder1}/different_R.npy'),
