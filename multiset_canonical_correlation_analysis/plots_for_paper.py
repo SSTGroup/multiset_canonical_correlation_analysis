@@ -192,13 +192,14 @@ def plot_true_estimated_results_for_paper(folder1, folder2, n_montecarlo, save=F
         plt.subplots_adjust(wspace=0.2)
         plt.show()
 
+
 def plot_true_estimated_rank_R_results_for_paper(folder1, folder2, n_montecarlo, save=False):
     results_differentR1 = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder1}/different_R.npy'),
                                   allow_pickle=True).item()
     results_differentR2 = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder2}/different_R.npy'),
                                   allow_pickle=True).item()
 
-    # store violation results for each algorithm
+    # store R value results for each algorithm
     R_values = [1, 2, 5, 10, 20, 50]
     scenarios_differentR = [f'rank_{R}' for R in R_values]
 
