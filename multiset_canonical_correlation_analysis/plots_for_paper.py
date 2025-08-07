@@ -199,9 +199,10 @@ def plot_true_estimated_rank_R_results_for_paper(folder1, folder2, n_montecarlo,
                                   allow_pickle=True).item()
 
     # store violation results for each algorithm
-    scenarios_differentR = [f'rank_{R}' for R in [1, 2, 5, 10, 20, 50]]
+    R_values = [1, 2, 5, 10, 20, 50]
+    scenarios_differentR = [f'rank_{R}' for R in R_values]
 
-    scenario_labels_differentR = [f'{R}$' for R in [1, 2, 5, 10, 20, 50]]
+    scenario_labels_differentR = [f'{R}$' for R in R_values]
     n_scenarios_differentR = len(scenario_labels_differentR)
     algorithms = list(results_differentR1[scenarios_differentR[0]].keys())
     joint_isi_per_algorithm_differentR1 = {algorithm: np.zeros((n_scenarios_differentR, n_montecarlo)) for algorithm in
@@ -221,15 +222,15 @@ def plot_true_estimated_rank_R_results_for_paper(folder1, folder2, n_montecarlo,
 
     colors = ['C0', 'C3', 'C2', 'C1', 'C4']
     # true
-    axes[0].axhline(y=0.05, color='tab:gray', linestyle=':',linewidth=1.1)
+    axes[0].axhline(y=0.05, color='tab:gray', linestyle=':', linewidth=1.1)
     for (idx, algorithm) in enumerate(algorithms):
-        axes[0].errorbar([1, 2, 5, 10, 20, 50],
+        axes[0].errorbar(R_values,
                          np.mean(joint_isi_per_algorithm_differentR1[algorithm], axis=1),
                          np.std(joint_isi_per_algorithm_differentR1[algorithm], axis=1),
                          color=colors[idx], linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1,
                          label=f'{algorithm}')
     axes[0].set_xscale('log')
-    axes[0].set_xticks([1, 2, 5, 10, 20, 50], scenario_labels_differentR, fontsize=12)
+    axes[0].set_xticks(R_values, scenario_labels_differentR, fontsize=12)
     axes[0].set_xlabel(r'effective rank $R$ \\ \\ (a) True covariance matrices', fontsize=12)
     axes[0].set_ylim([-0.05, 1.05])
     axes[0].set_yticks([0, 0.5, 1])
@@ -237,15 +238,15 @@ def plot_true_estimated_rank_R_results_for_paper(folder1, folder2, n_montecarlo,
     axes[0].set_ylabel('jISI', fontsize=12)
 
     # estimated
-    axes[1].axhline(y=0.05, color='tab:gray', linestyle=':',linewidth=1.1)
+    axes[1].axhline(y=0.05, color='tab:gray', linestyle=':', linewidth=1.1)
     for (idx, algorithm) in enumerate(algorithms):
-        axes[1].errorbar([1, 2, 5, 10, 20, 50],
+        axes[1].errorbar(R_values,
                          np.mean(joint_isi_per_algorithm_differentR2[algorithm], axis=1),
                          np.std(joint_isi_per_algorithm_differentR2[algorithm], axis=1),
                          color=colors[idx], linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1,
                          label=f'{algorithm}')
     axes[1].set_xscale('log')
-    axes[1].set_xticks([1, 2, 5, 10, 20, 50], scenario_labels_differentR, fontsize=12)
+    axes[1].set_xticks(R_values, scenario_labels_differentR, fontsize=12)
     axes[1].set_xlabel(r'effective rank $R$ \\ \\ (b) Estimated covariance matrices', fontsize=12)
     axes[1].set_ylim([-0.05, 1.05])
     axes[1].set_yticks([0, 0.5, 1])
