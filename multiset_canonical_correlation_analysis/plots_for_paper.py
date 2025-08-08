@@ -1,6 +1,8 @@
 import numpy as np
+import matplot2tikz
 from pathlib import Path
 import matplotlib.pyplot as plt
+from setuptools.command.rotate import rotate
 
 from .helpers import calculate_eigenvalues_from_ccv_covariance_matrices
 
@@ -195,7 +197,7 @@ def plot_true_estimated_results_for_paper(folder1, folder2, n_montecarlo, save=F
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.2)
         plt.show()
-        
+
 
 def plot_true_estimated_rank_R_results_for_paper(folder1, folder2, n_montecarlo, save=False):
     results_differentR1 = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder1}/different_R.npy'),
@@ -207,7 +209,7 @@ def plot_true_estimated_rank_R_results_for_paper(folder1, folder2, n_montecarlo,
     R_values = [1, 2, 5, 10, 20, 50]
     scenarios_differentR = [f'rank_{R}' for R in R_values]
 
-    scenario_labels_differentR = [f'{R}$' for R in R_values]
+    scenario_labels_differentR = [f'${R}$' for R in R_values]
     n_scenarios_differentR = len(scenario_labels_differentR)
     algorithms = list(results_differentR1[scenarios_differentR[0]].keys())
     joint_isi_per_algorithm_differentR1 = {algorithm: np.zeros((n_scenarios_differentR, n_montecarlo)) for algorithm in
@@ -270,6 +272,87 @@ def plot_true_estimated_rank_R_results_for_paper(folder1, folder2, n_montecarlo,
         plt.subplots_adjust(wspace=0.2)
         plt.show()
 
+
+def plot_results_for_different_samples(folder, T_values, n_montecarlo, save=False):
+    results_violations = {}
+    for T in T_values:
+        results_violations[T] = np.load(
+            Path(Path(__file__).parent.parent, f'simulation_results/{folder}{T}/violations.npy'),
+            allow_pickle=True).item()
+
+    # store different samples results for each algorithm
+    experiments = ['different_lambda_max', 'different_lambda_min']
+
+    n_scenarios_violations = len(T_values)
+    algorithms = list(results_violations[T_values[0]][experiments[0]].keys())
+
+    joint_isi_per_algorithm_violations_expC = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm
+                                               in algorithms}
+    joint_isi_per_algorithm_violations_expD = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm
+                                               in algorithms}
+
+    for T_idx, T in enumerate(T_values):
+        for algorithm_idx, algorithm in enumerate(algorithms):
+            joint_isi_per_algorithm_violations_expC[algorithm][T_idx, :] = \
+                results_violations[T]['different_lambda_min'][algorithm]['joint_isi']
+            joint_isi_per_algorithm_violations_expD[algorithm][T_idx, :] = \
+                results_violations[T]['different_lambda_max'][algorithm]['joint_isi']
+
+    # label
+    T_labels = [100, 1000, 10000, 100000, 1000000]
+    T_label_values = [f'${T_value}$' for T_value in T_labels]
+
+    # plot JISI for violations using true and estimated covariance matrices in one figure
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(9, 2.5))
+
+    colors = ['C0', 'C3', 'C2', 'C1', 'C4']
+
+    # Experiment C
+    axes[0].axhline(y=0.05, color='tab:gray', linestyle=':', linewidth=1.1)
+    for (idx, algorithm) in enumerate(algorithms):
+        axes[0].errorbar(T_values,
+                         np.mean(joint_isi_per_algorithm_violations_expC[algorithm], axis=1),
+                         np.std(joint_isi_per_algorithm_violations_expC[algorithm], axis=1),
+                         color=colors[idx], linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1,
+                         label=f'{algorithm}')
+    axes[0].set_xscale('log')
+    axes[0].set_xticks(T_labels, T_label_values, fontsize=12)
+    axes[0].set_xlabel(r'number of samples $V$ \\ \\ (a) Experiment C', fontsize=12)
+    axes[0].set_ylim([-0.05, 1.05])
+    axes[0].set_yticks([0, 0.5, 1])
+    axes[0].set_yticklabels([0, 0.5, 1], fontsize=12)
+    axes[0].set_ylabel('jISI', fontsize=12)
+
+    # Experiment D
+    axes[1].axhline(y=0.05, color='tab:gray', linestyle=':', linewidth=1.1)
+    for (idx, algorithm) in enumerate(algorithms):
+        axes[1].errorbar(T_values,
+                         np.mean(joint_isi_per_algorithm_violations_expD[algorithm], axis=1),
+                         np.std(joint_isi_per_algorithm_violations_expD[algorithm], axis=1),
+                         color=colors[idx], linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1,
+                         label=f'{algorithm}')
+    axes[1].set_xscale('log')
+    axes[1].set_xticks(T_labels, T_label_values, fontsize=12)
+    axes[1].set_xlabel(r'number of samples $V$ \\ \\ (b) Experiment D', fontsize=12)
+    axes[1].set_ylim([-0.05, 1.05])
+    axes[1].set_yticks([0, 0.5, 1])
+    axes[1].set_yticklabels([0, 0.5, 1], fontsize=12)
+
+    plt.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
+
+    if save:
+        plt.tight_layout()
+        plt.subplots_adjust(wspace=0.2)
+        matplot2tikz.save('joint_ISI_samples.tex', encoding='utf8', axis_width='7.5cm', axis_height='5cm',
+                          standalone=True)
+        plt.savefig(f'joint_ISI_samples.pdf')
+    else:
+        plt.title(f'joint ISI for the different experiments')
+        plt.tight_layout()
+        plt.subplots_adjust(wspace=0.2)
+        plt.show()
+
+
 def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, filename=None):
     indices = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99]
     Lambda = []
@@ -281,17 +364,17 @@ def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, filen
     Lambda.append(Lambda3[:, ::-1][:, indices])  # sort descending
     Lambda4 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov4)
     Lambda.append(Lambda4[:, ::-1][:, indices])  # sort descending
-    titles = ['Experiment A.' + '\n' + r'same $\mathbf{\lambda}_n$, same $\mathbf{\Theta}_n$',
-              'Experiment B.' + '\n' + r'same $\mathbf{\lambda}_n$, different $\mathbf{\Theta}_n$',
-              'Experiment C.' + '\n' + r'different $\lambda_n^{(\mathrm{min})}$',
-              'Experiment D.' + '\n' + r'different $\lambda_n^{(\mathrm{max})}$']
+    titles = ['\large{Experiment A.} \\ \large{same ' + r'$\boldsymbol{\lambda}_n$, same $\boldsymbol{\Theta}_n$}',
+              'Experiment B.' + r'\\' + r'same $\boldsymbol{\lambda}_n$, different $\boldsymbol{\Theta}_n$',
+              'Experiment C.' + r'\\' + r'different $\lambda_n^{(\mathrm{min})}$',
+              'Experiment D.' + r'\\' + r'different $\lambda_n^{(\mathrm{max})}$']
 
     fig, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 2.2))
     for ax_idx, ax in enumerate(axes):
 
         for n in range(scv_cov1.shape[2]):
-            ax.plot(np.array(indices) + 1, Lambda[ax_idx][4 - n, :], 'D:', markersize=2.5, lw=1,
-                    color=f'C{4 - n}', label=r'$\mathbf{\lambda}_' + f'{4 - n + 1}' + r'$')
+            ax.plot(np.array(indices) + 1, Lambda[ax_idx][4 - n, :], 'D:', markersize=3, lw=1.5,
+                    color=f'C{4 - n}', label=r'$\boldsymbol{\lambda}_' + f'{4 - n + 1}' + r'$')
         ax.set_xlabel(titles[ax_idx], fontsize=12)
         ax.set_xticks(np.array([0, 50, 100]), [0, 50, 100], fontsize=11)
 
@@ -311,6 +394,55 @@ def plot_all_eigenvalues_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, filen
     plt.tight_layout()
     plt.subplots_adjust(wspace=0.25)
     if filename is not None:
+        matplot2tikz.save(f'{filename}.tex', encoding='utf8', axis_width='5.8cm', axis_height='4.4cm', standalone=True)
+        plt.savefig(f'{filename}.pdf')
+    else:
+        plt.show()
+
+
+def plot_all_eigenvalues_rank_R_for_paper(scv_cov1, scv_cov2, scv_cov3, scv_cov4, filename=None):
+    indices = [0, 9, 19, 29, 39, 49, 59, 69, 79, 89, 99]
+    Lambda = []
+    Lambda1 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov1)
+    Lambda.append(Lambda1[:, ::-1][:, indices])  # sort descending
+    Lambda2 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov2)
+    Lambda.append(Lambda2[:, ::-1][:, indices])  # sort descending
+    Lambda3 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov3)
+    Lambda.append(Lambda3[:, ::-1][:, indices])  # sort descending
+    Lambda4 = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov4)
+    Lambda.append(Lambda4[:, ::-1][:, indices])  # sort descending
+    titles = [r'\large{$R=1$}',
+              r'\large{$R=10$}',
+              r'\large{$R=20$}',
+              r'\large{$R=50$}'
+              ]
+
+    fig, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 2.2))
+    for ax_idx, ax in enumerate(axes):
+
+        for n in range(scv_cov1.shape[2]):
+            ax.plot(np.array(indices) + 1, Lambda[ax_idx][4 - n, :], 'D:', markersize=3.4, lw=2,
+                    color=f'C{4 - n}', label=r'$\boldsymbol{\lambda}_' + f'{4 - n + 1}' + r'$')
+        ax.set_xlabel(titles[ax_idx], fontsize=12)
+        ax.set_xticks(np.array([0, 50, 100]), [0, 50, 100], fontsize=11)
+
+    axes[0].set_ylim([-10, 110])
+    axes[0].set_yticks(np.array([0, 50, 100]), [0, 50, 100], fontsize=11)
+
+    axes[1].set_ylim([-2, 22])
+    axes[1].set_yticks(np.array([0, 10, 20]), [0, 10, 20], fontsize=11)
+    # #
+    axes[2].set_ylim([-1, 11])
+    axes[2].set_yticks(np.array([0, 5, 10]), [0, 5, 10], fontsize=11)
+    #
+    axes[3].set_ylim([-0.5, 5.5])
+    axes[3].set_yticks(np.array([0, 2.5, 5]), [0, 2.5, 5], fontsize=11)
+
+    plt.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.25)
+    if filename is not None:
+        matplot2tikz.save(f'{filename}.tex', encoding='utf8', axis_width='5.8cm', axis_height='4.4cm', standalone=True)
         plt.savefig(f'{filename}.pdf')
     else:
         plt.show()
