@@ -21,7 +21,7 @@ Required third party packages will automatically be installed.
 First, the imports:
 
     import numpy as np
-    from multiset_canonical_correlation_analysis import mCCA, simulations
+    from multiset_canonical_correlation_analysis import mcca, simulations
     from independent_vector_analysis.helpers_iva import _bss_isi
 
 
@@ -42,15 +42,15 @@ where
 
 Apply mCCA-genvar to find the canonical variables.
 
-    T, U = mcca.mcca(X, 'genvar')
+    transform, U = mcca.mcca(X, 'genvar')
 
 where
-* `T` : transformation matrix of dimensions N x N x K
-* `U` : canonical variables of dimensions N x T x K, with `U[:,:,k] = T[:,:,k].T @ X[:,:,k]`
+* `transform` : transformation matrix of dimensions N x N x K
+* `U` : canonical variables of dimensions N x T x K, with `U[:,:,k] = transform[:,:,k].T @ X[:,:,k]`
  
 Calculate the jISI to evaluate JBSS performance.
 
-    W = np.moveaxis(T, [0, 1, 2], [1, 0, 2])
+    W = np.moveaxis(transform, [0, 1, 2], [1, 0, 2])
     print(f'joint_isi genvar: {_bss_isi(W, A)[1]}')
 
 A jISI smaller than 0.05 means successful JBSS, i.e., the canonical variables are permuted and scaled versions of the true sources.
