@@ -55,7 +55,7 @@ def numerical_gradient_Nnl_by_vnki(X, V_n, k, l, epsilon=1e-6):
 
 def numerical_gradient_Rnminusl_by_vnki(X, V_n, k, l, epsilon=1e-6):
     """
-    Numerically compute the gradient of N_n^[l] w.r.t v_n^[k](i), for l != k.
+    Numerically compute the gradient of R_n^[-l] w.r.t v_n^[k](i), for l != k.
 
     Parameters:
         V_n: N x K matrix. V_n[:,k] is v_n^[k], i.e., the nth column of V^[k]
@@ -101,6 +101,47 @@ def numerical_gradient_Rnminusl_by_vnki(X, V_n, k, l, epsilon=1e-6):
     return numerical_grad, analytical_grad
 
 
+def numerical_hessian_k_equal_l(X, V_n, k, epsilon=1e-6):
+    """
+    Numerically compute the gradient of N_n^[l] w.r.t v_n^[k](i), for l != k.
+
+    Parameters:
+        V_n: N x K matrix. V_n[:,k] is v_n^[k], i.e., the nth column of V^[k]
+    - epsilon: small value for finite difference
+
+    Returns:
+    - grad: gradient vector of size N (∂det(X)/∂w_k)
+    """
+
+    N, T, K = X.shape
+    C_yy = calculate_Cyy(X)
+
+    original_R_n = compute_R_n(X, V_n)
+    original_R_n_minus_k = np.delete(np.delete(original_R_n, k, 0), k,
+                                     1)  # K-1 x K-1 matrix Phi_j on p.445, his j=our l
+    original_N_n_k = compute_Nnk(C_yy, V_n, k)
+    original_R_n_tilde_k = original_N_n_k @ np.linalg.inv(original_R_n_minus_k) @ original_N_n_k.T  # Q_j on p.445
+    original_grad = - 2 * np.linalg.det(original_R_n_minus_k) * V_n[:, k].T @ (original_R_n_tilde_k - np.eye(N))
+
+    numerical_hessiankk = np.zeros((N, N))
+    for i in range(N):
+        V_n_perturbed = V_n.copy()
+        V_n_perturbed[i, k] += epsilon  # change ith element of v_n^[k] and compare this Nnk to the previous one
+        R_n_perturbed = compute_R_n(X, V_n_perturbed)
+        R_n_minus_k_perturbed = np.delete(np.delete(R_n_perturbed, k, 0), k,
+                                          1)  # K-1 x K-1 matrix Phi_j on p.445, his j=our l
+        N_n_k_perturbed = compute_Nnk(C_yy, V_n_perturbed, k)
+        R_n_tilde_k_perturbed = N_n_k_perturbed @ np.linalg.inv(R_n_minus_k_perturbed) @ N_n_k_perturbed.T
+        grad_perturbed = - 2 * np.linalg.det(R_n_minus_k_perturbed) * V_n_perturbed[:, k].T @ (R_n_tilde_k_perturbed - np.eye(N))
+
+        numerical_hessiankk[i, :] = (grad_perturbed - original_grad) / epsilon
+
+    # compare with analytical formulation
+    analytical_hessiankk = -2 * np.linalg.det(original_R_n_minus_k) * (original_R_n_tilde_k - np.eye(N))
+
+    return numerical_hessiankk, analytical_hessiankk
+
+
 # Example usage:
 def test_compare_hessians():
     np.random.seed(42)
@@ -129,3 +170,8 @@ def test_compare_hessians():
     print(
         f"Difference of symmetric and analytical gradient of R_{n}^[-{l}] with respect to v_{n}^[{k}]:"
         f"\n{np.linalg.norm(numerical_grad - analytical_grad)}")
+
+    numerical_hessiankk, analytical_hessiankk = numerical_hessian_k_equal_l(X, V[:, n, :], k, epsilon=1e-6)
+    print(
+        f"Difference of Hessians for k = l with respect to v_{n}^[{k}]:"
+        f"\n{np.linalg.norm(numerical_hessiankk - analytical_hessiankk)}")
