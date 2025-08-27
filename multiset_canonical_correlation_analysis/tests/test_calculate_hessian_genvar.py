@@ -278,10 +278,10 @@ def compute_hessian_det_R_n(X, V_n, k, l, epsilon=1e-6):
         Rntildel_by_vnki = compute_gradient_Rntildel_by_vnki(X, V_n, k, l, epsilon)[1]
         analytical_hessian = np.zeros((N, N))
         for i in range(N):
-            for j in range(N):
-                analytical_hessian[i, j] = -2 * det_Rnminusl_by_vnki[i] * V_n[:, l].T @ (
-                        original_R_n_tilde_l[:, j] - np.eye(N)[:, j]) - 2 * np.linalg.det(
-                    original_R_n_minus_l) * V_n[:, l].T @ Rntildel_by_vnki[i, :, :][:, j]
+            analytical_hessian[i, :] = -2 * det_Rnminusl_by_vnki[i] * V_n[:, l].T @ (
+                        original_R_n_tilde_l - np.eye(N)) - 2 * np.linalg.det(original_R_n_minus_l) * V_n[:,
+                                                                                                      l].T @ Rntildel_by_vnki[
+                                                                                                             i, :, :]
 
     return numerical_hessian, analytical_hessian
 
@@ -305,7 +305,7 @@ def compute_gradient_Lagragrian(X, V_n, H_n_k, k, l, epsilon=1e-6):
     original_R_n_minus_l = np.delete(np.delete(original_R_n, l, 0), l, 1)  # K-1 x K-1
     original_N_n_l = compute_Nnl(C_yy, V_n, l)
     original_R_n_tilde_l = original_N_n_l @ np.linalg.inv(original_R_n_minus_l) @ original_N_n_l.T  # Q_j on p.445
-    original_Lagragrian = np.linalg.det(original_R_n) +  * V_n[:, l].T @ (original_R_n_tilde_l - np.eye(N))
+    original_Lagragrian = np.linalg.det(original_R_n) +1    *V_n[:, l].T @ (original_R_n_tilde_l - np.eye(N))
 
     numerical_hessian = np.zeros((N, N))
     for i in range(N):
@@ -321,7 +321,7 @@ def compute_gradient_Lagragrian(X, V_n, H_n_k, k, l, epsilon=1e-6):
         numerical_hessian[i, :] = (grad_perturbed - original_grad) / epsilon
 
     # compare with analytical formulation
-    analytical_grad = -2 * np.linalg.det(original_R_n_minus_k) * H_n_k @ (original_R_n_tilde_k - np.eye(N)) @ V_n[:,k]
+    analytical_grad = -2 * np.linalg.det(original_R_n_minus_k) * H_n_k @ (original_R_n_tilde_k - np.eye(N)) @ V_n[:, k]
 
     return numerical_hessian, analytical_grad
 
