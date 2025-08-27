@@ -57,9 +57,9 @@ def compute_gradient_Nnl_by_vnki(X, V_n, k, l, epsilon=1e-6):
     analytical_grad = np.zeros((N, N, K - 1))
     for i in range(N):
         if l < k:
-            analytical_grad[i, :, k - 1] = C_yy[k * N: (k + 1) * N, l * N: (l + 1) * N][i, :]
+            analytical_grad[i, :, k - 1] = C_yy[l * N: (l + 1) * N, k * N: (k + 1) * N][:,i]
         elif l > k:
-            analytical_grad[i, :, k] = C_yy[k * N: (k + 1) * N, l * N: (l + 1) * N][i, :]
+            analytical_grad[i, :, k] = C_yy[l * N: (l + 1) * N, k * N: (k + 1) * N][:,i]
 
     return numerical_grad, analytical_grad
 
@@ -92,22 +92,19 @@ def compute_gradient_Rnminusl_by_vnki(X, V_n, k, l, epsilon=1e-6):
         numerical_grad[i, :, :] = (R_n_minus_l_perturbed - original_R_n_minus_l) / epsilon
 
     # compare with analytical formulation
+    nameless_variable = []
+    for i in range(K):
+        if i != l:
+            nameless_variable.append(C_yy[k * N: (k + 1) * N, i * N: (i + 1) * N] @ V_n[:, i])
+    nameless_variable = np.array(nameless_variable).T
     analytical_grad = np.zeros((N, K - 1, K - 1))
     for i in range(N):
+        e_K1_k = np.zeros(K-1)
         if l < k:
-            for j in range(l):
-                analytical_grad[i, k - 1, j] += C_yy[k * N: (k + 1) * N, j * N: (j + 1) * N][i, :] @ V_n[:, j]
-                analytical_grad[i, j, k - 1] += C_yy[k * N: (k + 1) * N, j * N: (j + 1) * N][i, :] @ V_n[:, j]
-            for j in range(l + 1, K):
-                analytical_grad[i, k - 1, j - 1] += C_yy[k * N: (k + 1) * N, j * N: (j + 1) * N][i, :] @ V_n[:, j]
-                analytical_grad[i, j - 1, k - 1] += C_yy[k * N: (k + 1) * N, j * N: (j + 1) * N][i, :] @ V_n[:, j]
+            e_K1_k[k-1] = 1
         elif l > k:
-            for j in range(l):
-                analytical_grad[i, k, j] += C_yy[k * N: (k + 1) * N, j * N: (j + 1) * N][i, :] @ V_n[:, j]
-                analytical_grad[i, j, k] += C_yy[k * N: (k + 1) * N, j * N: (j + 1) * N][i, :] @ V_n[:, j]
-            for j in range(l + 1, K):
-                analytical_grad[i, k, j - 1] += C_yy[k * N: (k + 1) * N, j * N: (j + 1) * N][i, :] @ V_n[:, j]
-                analytical_grad[i, j - 1, k] += C_yy[k * N: (k + 1) * N, j * N: (j + 1) * N][i, :] @ V_n[:, j]
+            e_K1_k[k] = 1
+        analytical_grad[i, :, :] = np.outer(e_K1_k, nameless_variable[i,:]) + np.outer(e_K1_k, nameless_variable[i,:]).T
 
     return numerical_grad, analytical_grad
 
@@ -131,7 +128,7 @@ def compute_gradient_det_Rnminusl_by_vnki(X, V_n, k, l, epsilon=1e-6):
     original_R_n_minus_l = np.delete(np.delete(original_R_n, l, 0), l, 1)  # K-1 x K-1
     original_det_R_n_minus_l = np.linalg.det(original_R_n_minus_l)
 
-    numerical_grad = np.zeros((N))
+    numerical_grad = np.zeros(N)
     for i in range(N):
         V_n_perturbed = V_n.copy()
         V_n_perturbed[i, k] += epsilon  # change ith element of v_n^[k] and compare this Nnk to the previous one
@@ -142,13 +139,15 @@ def compute_gradient_det_Rnminusl_by_vnki(X, V_n, k, l, epsilon=1e-6):
         numerical_grad[i] = (det_R_n_minus_l_perturbed - original_det_R_n_minus_l) / epsilon
 
     # compare with analytical formulation
-    original_R_n_minus_l_minus_k = np.delete(np.delete(original_R_n, [k, l], 0), [k, l], 1)  # K-1 x K-1
-    original_N_n_minus_l_k = compute_Nn_minusl_k(C_yy, V_n, k, l)
-    original_N_n_k = compute_Nnl(C_yy, V_n, k)
-    original_R_n_tilde_minus_l_k = original_N_n_minus_l_k @ np.linalg.inv(
-        original_R_n_minus_l_minus_k) @ original_N_n_minus_l_k.T
-    analytical_grad = -2 * np.linalg.det(original_R_n_minus_l_minus_k) * (
-            original_R_n_tilde_minus_l_k - np.eye(N)) @ V_n[:, k]
+    if l == k:
+        analytical_grad = np.zeros(N)
+    else:
+        original_R_n_minus_l_minus_k = np.delete(np.delete(original_R_n, [k, l], 0), [k, l], 1)  # K-1 x K-1
+        original_N_n_minus_l_k = compute_Nn_minusl_k(C_yy, V_n, k, l)
+        original_R_n_tilde_minus_l_k = original_N_n_minus_l_k @ np.linalg.inv(
+            original_R_n_minus_l_minus_k) @ original_N_n_minus_l_k.T
+        analytical_grad = -2 * np.linalg.det(original_R_n_minus_l_minus_k) * (
+                original_R_n_tilde_minus_l_k - np.eye(N)) @ V_n[:, k]
 
     return numerical_grad, analytical_grad
 
