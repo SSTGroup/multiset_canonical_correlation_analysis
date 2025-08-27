@@ -56,10 +56,12 @@ def compute_gradient_Nnl_by_vnki(X, V_n, k, l, epsilon=1e-6):
     # compare with analytical formulation
     analytical_grad = np.zeros((N, N, K - 1))
     for i in range(N):
+        e_K1_k = np.zeros(K - 1)
         if l < k:
-            analytical_grad[i, :, k - 1] = C_yy[l * N: (l + 1) * N, k * N: (k + 1) * N][:,i]
+            e_K1_k[k - 1] = 1
         elif l > k:
-            analytical_grad[i, :, k] = C_yy[l * N: (l + 1) * N, k * N: (k + 1) * N][:,i]
+            e_K1_k[k] = 1
+        analytical_grad[i, :, :] = np.outer(C_yy[l * N: (l + 1) * N, k * N: (k + 1) * N][:, i], e_K1_k)
 
     return numerical_grad, analytical_grad
 
@@ -97,14 +99,15 @@ def compute_gradient_Rnminusl_by_vnki(X, V_n, k, l, epsilon=1e-6):
         if i != l:
             nameless_variable.append(C_yy[k * N: (k + 1) * N, i * N: (i + 1) * N] @ V_n[:, i])
     nameless_variable = np.array(nameless_variable).T
+    e_K1_k = np.zeros(K - 1)
+    if l < k:
+        e_K1_k[k - 1] = 1
+    elif l > k:
+        e_K1_k[k] = 1
     analytical_grad = np.zeros((N, K - 1, K - 1))
     for i in range(N):
-        e_K1_k = np.zeros(K-1)
-        if l < k:
-            e_K1_k[k-1] = 1
-        elif l > k:
-            e_K1_k[k] = 1
-        analytical_grad[i, :, :] = np.outer(e_K1_k, nameless_variable[i,:]) + np.outer(e_K1_k, nameless_variable[i,:]).T
+        analytical_grad[i, :, :] = np.outer(e_K1_k, nameless_variable[i, :]) + np.outer(e_K1_k,
+                                                                                        nameless_variable[i, :]).T
 
     return numerical_grad, analytical_grad
 
@@ -304,7 +307,7 @@ def compute_gradient_Lagragrian(X, V_n, H_n_k, k, l, epsilon=1e-6):
     original_R_n_minus_l = np.delete(np.delete(original_R_n, l, 0), l, 1)  # K-1 x K-1
     original_N_n_l = compute_Nnl(C_yy, V_n, l)
     original_R_n_tilde_l = original_N_n_l @ np.linalg.inv(original_R_n_minus_l) @ original_N_n_l.T  # Q_j on p.445
-    original_Lagragrian = np.linalg.det(original_R_n) +1    *V_n[:, l].T @ (original_R_n_tilde_l - np.eye(N))
+    original_Lagragrian = np.linalg.det(original_R_n) + 1 * V_n[:, l].T @ (original_R_n_tilde_l - np.eye(N))
 
     numerical_hessian = np.zeros((N, N))
     for i in range(N):
