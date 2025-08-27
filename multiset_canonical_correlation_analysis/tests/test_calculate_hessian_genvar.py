@@ -276,14 +276,42 @@ def compute_hessian_det_R_n(X, V_n, k, l, epsilon=1e-6):
     if k == l:
         analytical_hessian = -2 * np.linalg.det(original_R_n_minus_l) * (original_R_n_tilde_l - np.eye(N))
     else:
-        det_Rnminusl_by_vnki = compute_gradient_det_Rnminusl_by_vnki(X, V_n, k, l, epsilon)[1]
-        Rntildel_by_vnki = compute_gradient_Rntildel_by_vnki(X, V_n, k, l, epsilon)[1]
+        # det_Rnminusl_by_vnki = compute_gradient_det_Rnminusl_by_vnki(X, V_n, k, l, epsilon)[1]
+        # Rntildel_by_vnki = compute_gradient_Rntildel_by_vnki(X, V_n, k, l, epsilon)[1]
+        # analytical_hessian = np.zeros((N, N))
+        # for i in range(N):
+        #     analytical_hessian[i, :] = -2 * det_Rnminusl_by_vnki[i] * V_n[:, l].T @ (
+        #                 original_R_n_tilde_l - np.eye(N)) - 2 * np.linalg.det(original_R_n_minus_l) * V_n[:,
+        #                                                                                               l].T @ Rntildel_by_vnki[
+        #                                                                                                      i, :, :]
+
+        original_R_n_minus_l_inv = np.linalg.inv(original_R_n_minus_l)
+        original_R_n_minus_l_minus_k = np.delete(np.delete(original_R_n, [k, l], 0), [k, l], 1)  # K-1 x K-1
+        original_N_n_minus_l_k = compute_Nn_minusl_k(C_yy, V_n, k, l)
+        original_R_n_tilde_minus_l_k = original_N_n_minus_l_k @ np.linalg.inv(
+            original_R_n_minus_l_minus_k) @ original_N_n_minus_l_k.T
+        nameless_variable = []
+        for i in range(K):
+            if i != l:
+                nameless_variable.append(C_yy[k * N: (k + 1) * N, i * N: (i + 1) * N] @ V_n[:, i])
+        nameless_variable = np.array(nameless_variable).T
+        e_K1_k = np.zeros(K - 1)
+        if l < k:
+            e_K1_k[k - 1] = 1
+        elif l > k:
+            e_K1_k[k] = 1
+
         analytical_hessian = np.zeros((N, N))
         for i in range(N):
-            analytical_hessian[i, :] = -2 * det_Rnminusl_by_vnki[i] * V_n[:, l].T @ (
-                        original_R_n_tilde_l - np.eye(N)) - 2 * np.linalg.det(original_R_n_minus_l) * V_n[:,
-                                                                                                      l].T @ Rntildel_by_vnki[
-                                                                                                             i, :, :]
+            analytical_hessian[i, :] = 4 * np.linalg.det(original_R_n_minus_l_minus_k) * (
+                        (original_R_n_tilde_minus_l_k[i, :] - np.eye(N)[i, :]) @ V_n[:, k]) * (V_n[:, l].T @ (
+                        original_R_n_tilde_l - np.eye(N))) - 2 * np.linalg.det(original_R_n_minus_l) * V_n[:, l].T @ (
+                                                   np.outer(C_yy[l * N: (l + 1) * N, k * N: (k + 1) * N][:, i],
+                                                            e_K1_k) @ original_R_n_minus_l_inv @ original_N_n_l.T - original_N_n_l @ original_R_n_minus_l_inv @ (
+                                                               np.outer(e_K1_k, nameless_variable[i, :]) + np.outer(
+                                                           e_K1_k, nameless_variable[i,
+                                                                   :]).T) @ original_R_n_minus_l_inv @ original_N_n_l.T + original_N_n_l @ original_R_n_minus_l_inv @ np.outer(
+                                               e_K1_k, C_yy[k * N: (k + 1) * N, l * N: (l + 1) * N][i, :]))
 
     return numerical_hessian, analytical_hessian
 
