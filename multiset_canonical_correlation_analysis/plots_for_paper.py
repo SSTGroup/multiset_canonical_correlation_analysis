@@ -2,204 +2,63 @@ import numpy as np
 import matplot2tikz
 from pathlib import Path
 import matplotlib.pyplot as plt
-from setuptools.command.rotate import rotate
 
 from .helpers import calculate_eigenvalues_from_ccv_covariance_matrices
 
 
-def plot_results_for_paper(folder, n_montecarlo, save=False):
+def plot_identification_conditions_for_paper(folder, n_montecarlo, save=False):
     results_violations = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder}/violations.npy'),
                                  allow_pickle=True).item()
-    results_different_R = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder}/different_R.npy'),
-                                  allow_pickle=True).item()
-
-    # store violation results for each algorithm
-    scenarios_violations = ['same_eigenvalues_same_eigenvectors',
-                            'same_eigenvalues_different_eigenvectors',
-                            'different_lambda_max', 'different_lambda_min']  # dict keys would be in wrong order
-    scenario_labels_violations = [r'A', r'B', r'C', r'D']
-    n_scenarios_violations = len(scenario_labels_violations)
-    algorithms = list(results_violations[scenarios_violations[0]].keys())
-    joint_isi_per_algorithm_violations = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm in
-                                          algorithms}
-    runtime_per_algorithm_violations = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm in
-                                        algorithms}
-    for scenario_idx, scenario in enumerate(scenarios_violations):
-        for algorithm_idx, algorithm in enumerate(algorithms):
-            joint_isi_per_algorithm_violations[algorithm][scenario_idx, :] = results_violations[scenario][algorithm][
-                'joint_isi']
-            runtime_per_algorithm_violations[algorithm][scenario_idx, :] = results_violations[scenario][algorithm][
-                'runtime']
-
-    # store different R results for each algorithm
-    scenarios_different_R = [f'rank_{R}' for R in [1, 2, 5, 10, 20, 50]]
-    n_scenarios_different_R = len(scenarios_different_R)
-    algorithms = list(results_different_R[scenarios_different_R[0]].keys())
-    joint_isi_per_algorithm_different_R = {algorithm: np.zeros((n_scenarios_different_R, n_montecarlo)) for algorithm in
-                                           algorithms}
-    runtime_per_algorithm_different_R = {algorithm: np.zeros((n_scenarios_different_R, n_montecarlo)) for algorithm in
-                                         algorithms}
-    for scenario_idx, scenario in enumerate(scenarios_different_R):
-        for algorithm_idx, algorithm in enumerate(algorithms):
-            joint_isi_per_algorithm_different_R[algorithm][scenario_idx, :] = results_different_R[scenario][algorithm][
-                'joint_isi']
-            runtime_per_algorithm_different_R[algorithm][scenario_idx, :] = results_different_R[scenario][algorithm][
-                'runtime']
-
-    # plot JISI for violations and different R in one figure
-    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(9, 2.5))
-
-    # violations
-    for algorithm in algorithms:
-        axes[0].errorbar(np.arange(n_scenarios_violations),
-                         np.mean(joint_isi_per_algorithm_violations[algorithm], axis=1),
-                         np.std(joint_isi_per_algorithm_violations[algorithm], axis=1),
-                         linestyle=(0, (1, 5)), fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
-    axes[0].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
-    axes[0].set_xlabel(r'Experiment', fontsize=12)
-    axes[0].set_ylim([-0.05, 1.05])
-    axes[0].set_yticks([0, 0.5, 1])
-    axes[0].set_yticklabels([0, 0.5, 1], fontsize=12)
-    axes[0].set_ylabel('jISI', fontsize=12)
-
-    # different R
-    for algorithm in algorithms:
-        axes[1].errorbar(np.log([1, 2, 5, 10, 20, 50]),
-                         np.mean(joint_isi_per_algorithm_different_R[algorithm], axis=1),
-                         np.std(joint_isi_per_algorithm_different_R[algorithm], axis=1),
-                         linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
-    axes[1].set_xlim([np.log(0.9), np.log(55)])
-    axes[1].set_xticks(np.log([1, 2, 5, 10, 20, 50]),
-                       ['  $R$=1', '  $R$=2', '$R$=5    ', '$R$=10   ', ' $R$=20 ', '$R$=50  '],
-                       fontsize=12)
-    axes[1].set_xlabel(r'Experiment E', fontsize=12)
-    axes[1].set_ylim([-0.03, 0.63])
-    axes[1].set_yticks([0, 0.3, 0.6], [0, 0.3, 0.6], fontsize=12)
-
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-
-    if save:
-        plt.tight_layout()
-        plt.savefig(f'joint_ISI.pdf')
-    else:
-        plt.title(f'joint ISI for the different experiments')
-        plt.tight_layout()
-
-    # plot RUNTIME for violations and different R in one figure
-    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(9, 2.5))
-
-    # violations
-    for algorithm in algorithms:
-        axes[0].errorbar(np.arange(n_scenarios_violations),
-                         np.mean(runtime_per_algorithm_violations[algorithm], axis=1),
-                         np.std(runtime_per_algorithm_violations[algorithm], axis=1),
-                         linestyle=(0, (1, 5)), fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
-    axes[0].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
-    axes[0].set_xlabel(r'Experiment', fontsize=12)
-    axes[0].set_ylim([-25, 525])
-    axes[0].set_yticks([0, 250, 500], [0, 250, 500], fontsize=12)
-    axes[0].set_ylabel('runtime in seconds', fontsize=12)
-
-    # different R
-    for algorithm in algorithms:
-        axes[1].errorbar(np.log([1, 2, 5, 10, 20, 50]),
-                         np.mean(runtime_per_algorithm_different_R[algorithm], axis=1),
-                         np.std(runtime_per_algorithm_different_R[algorithm], axis=1),
-                         linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
-    axes[1].set_xlim([np.log(0.95), np.log(52.5)])
-    axes[1].set_xticks(np.log([1, 2, 5, 10, 20, 50]),
-                       ['  $R$=1', '  $R$=2', '$R$=5    ', '$R$=10   ', ' $R$=20 ', '$R$=50  '],
-                       fontsize=12)
-    axes[1].set_xlabel(r'Experiment E', fontsize=12)
-
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-
-    if save:
-        plt.tight_layout()
-        plt.savefig(f'runtime.pdf')
-    else:
-        plt.title(f'runtime for the different experiments')
-        plt.tight_layout()
-        plt.show()
-
-
-def plot_true_estimated_results_for_paper(folder1, folder2, n_montecarlo, save=False):
-    results_violations1 = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder1}/violations.npy'),
-                                  allow_pickle=True).item()
-    results_violations2 = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder2}/violations.npy'),
-                                  allow_pickle=True).item()
 
     # store violation results for each algorithm
     scenarios_violations = ['same_eigenvalues_same_eigenvectors',
                             'same_eigenvalues_different_eigenvectors',
                             'different_lambda_min',
                             'different_lambda_max']  # dict keys would be in wrong order
-    scenario_labels_violations = [r'A', r'B', r'C', r'D']
+    scenario_labels_violations = ['Exp. A', 'Exp. B', 'Exp. C', 'Exp. D']
     n_scenarios_violations = len(scenario_labels_violations)
-    algorithms = list(results_violations1[scenarios_violations[0]].keys())
-    joint_isi_per_algorithm_violations1 = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm in
-                                           algorithms}
-    joint_isi_per_algorithm_violations2 = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm in
-                                           algorithms}
-    # runtime_per_algorithm_violations = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm in
-    #                                     algorithms}
+    algorithms = ['sumcor', 'maxvar', 'minvar', 'genvar', 'ssqcor']
+    joint_isi_per_algorithm_violations = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm
+                                          in algorithms}
+
     for scenario_idx, scenario in enumerate(scenarios_violations):
         for algorithm_idx, algorithm in enumerate(algorithms):
-            joint_isi_per_algorithm_violations1[algorithm][scenario_idx, :] = results_violations1[scenario][algorithm][
+            joint_isi_per_algorithm_violations[algorithm][scenario_idx, :] = results_violations[scenario][algorithm][
                 'joint_isi']
-            joint_isi_per_algorithm_violations2[algorithm][scenario_idx, :] = results_violations2[scenario][algorithm][
-                'joint_isi']
-            # runtime_per_algorithm_violations[algorithm][scenario_idx, :] = results_violations[scenario][algorithm][
-            #     'runtime']
 
-    # plot JISI for violations using true and estimated covariance matrices in one figure
-    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(9, 2.5))
+    # plot joint ISI for violations using true and estimated covariance matrices in one figure
+    fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(9, 2.5))
 
     colors = ['C0', 'C3', 'C2', 'C1', 'C4']
-    # true
-    axes[0].axhline(y=0.05, color='tab:gray', linestyle=':', linewidth=1.1)
-    for (idx, algorithm) in enumerate(algorithms):
-        axes[0].errorbar(np.arange(n_scenarios_violations),
-                         np.mean(joint_isi_per_algorithm_violations1[algorithm], axis=1),
-                         np.std(joint_isi_per_algorithm_violations1[algorithm], axis=1),
-                         color=colors[idx], linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1,
-                         label=f'{algorithm}')
-    axes[0].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
-    axes[0].set_xlabel(r'(a) Infinite samples', fontsize=12)
-    axes[0].set_ylim([-0.05, 1.05])
-    axes[0].set_yticks([0, 0.5, 1])
-    axes[0].set_yticklabels([0, 0.5, 1], fontsize=12)
-    axes[0].set_ylabel('jISI', fontsize=12)
 
-    # estimated
-    axes[1].axhline(y=0.05, color='tab:gray', linestyle=':', linewidth=1.1)
+    # errorbar
+    axes.axhline(y=0.05, color='tab:gray', linestyle=':', linewidth=1.1)
     for (idx, algorithm) in enumerate(algorithms):
-        axes[1].errorbar(np.arange(n_scenarios_violations),
-                         np.mean(joint_isi_per_algorithm_violations2[algorithm], axis=1),
-                         np.std(joint_isi_per_algorithm_violations2[algorithm], axis=1),
-                         color=colors[idx], linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1,
-                         label=f'{algorithm}')
-    axes[1].set_xticks(np.arange(n_scenarios_violations), scenario_labels_violations, fontsize=12)
-    axes[1].set_xlabel(r'(b) $V=10000$ samples', fontsize=12)
-    axes[1].set_ylim([-0.05, 1.05])
-    axes[1].set_yticks([0, 0.5, 1])
-    axes[1].set_yticklabels([0, 0.5, 1], fontsize=12)
+        axes.errorbar(np.arange(idx, n_scenarios_violations * (len(algorithms) + 2), len(algorithms) + 2),
+                      np.mean(joint_isi_per_algorithm_violations[algorithm], axis=1),
+                      np.std(joint_isi_per_algorithm_violations[algorithm], axis=1),
+                      color=colors[idx], linestyle='', fmt='D', markersize=3, capsize=2, lw=1.1,
+                      label=f'{algorithm}')
+    axes.set_xticks(np.arange(2, n_scenarios_violations * (len(algorithms) + 2), len(algorithms) + 2),
+                    scenario_labels_violations, fontsize=12)
+    axes.set_ylim([-0.05, 1.05])
+    axes.set_yticks([0, 0.5, 1])
+    axes.set_yticklabels([0, 0.5, 1], fontsize=12)
+    axes.set_ylabel('jISI', fontsize=12)
 
     plt.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
 
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.2)
     if save:
-        plt.tight_layout()
-        plt.subplots_adjust(wspace=0.2)
-        matplot2tikz.save('joint_ISI.tex', encoding='utf8', axis_width='7.5cm', axis_height='5cm', standalone=True)
-        plt.savefig(f'joint_ISI.pdf')
+        matplot2tikz.save(f'jiont_isi.tex', encoding='utf8', axis_width='7.5cm', axis_height='5cm',
+                          standalone=True)
+        plt.savefig(f'joint_isi.pdf')
     else:
-        plt.title(f'joint ISI for the different experiments')
-        plt.tight_layout()
-        plt.subplots_adjust(wspace=0.2)
         plt.show()
 
 
-def plot_true_estimated_rank_R_results_for_paper(folder1, folder2, n_montecarlo, save=False):
+def plot_rank_R_results_for_paper(folder1, folder2, n_montecarlo, save=False):
     results_differentR1 = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder1}/different_R.npy'),
                                   allow_pickle=True).item()
     results_differentR2 = np.load(Path(Path(__file__).parent.parent, f'simulation_results/{folder2}/different_R.npy'),
@@ -224,7 +83,7 @@ def plot_true_estimated_rank_R_results_for_paper(folder1, folder2, n_montecarlo,
             joint_isi_per_algorithm_differentR2[algorithm][scenario_idx, :] = results_differentR2[scenario][algorithm][
                 'joint_isi']
 
-    # plot JISI for differentR using true and estimated covariance matrices in one figure
+    # plot joint ISI for different R using true and estimated covariance matrices in one figure
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(9, 2.5))
 
     colors = ['C0', 'C3', 'C2', 'C1', 'C4']
@@ -264,8 +123,8 @@ def plot_true_estimated_rank_R_results_for_paper(folder1, folder2, n_montecarlo,
     if save:
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.2)
-        matplot2tikz.save('joint_ISI_R.tex', encoding='utf8', axis_width='7.5cm', axis_height='5cm', standalone=True)
-        plt.savefig(f'joint_ISI_R.pdf')
+        matplot2tikz.save('joint_isi_R.tex', encoding='utf8', axis_width='7.5cm', axis_height='5cm', standalone=True)
+        plt.savefig(f'joint_isi_R.pdf')
     else:
         plt.title(f'joint ISI for the different experiments')
         plt.tight_layout()
@@ -273,34 +132,34 @@ def plot_true_estimated_rank_R_results_for_paper(folder1, folder2, n_montecarlo,
         plt.show()
 
 
-def plot_results_for_different_samples(folder, T_values, n_montecarlo, save=False):
+def plot_different_samples_results_for_paper(folder, V_values, n_montecarlo, save=False):
     results_violations = {}
-    for T in T_values:
-        results_violations[T] = np.load(
-            Path(Path(__file__).parent.parent, f'simulation_results/{folder}{T}/violations.npy'),
+    for V in V_values:
+        results_violations[V] = np.load(
+            Path(Path(__file__).parent.parent, f'simulation_results/{folder}{V}/violations.npy'),
             allow_pickle=True).item()
 
     # store different samples results for each algorithm
     experiments = ['different_lambda_max', 'different_lambda_min']
 
-    n_scenarios_violations = len(T_values)
-    algorithms = list(results_violations[T_values[0]][experiments[0]].keys())
+    n_scenarios_violations = len(V_values)
+    algorithms = list(results_violations[V_values[0]][experiments[0]].keys())
 
     joint_isi_per_algorithm_violations_expC = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm
                                                in algorithms}
     joint_isi_per_algorithm_violations_expD = {algorithm: np.zeros((n_scenarios_violations, n_montecarlo)) for algorithm
                                                in algorithms}
 
-    for T_idx, T in enumerate(T_values):
+    for V_idx, V in enumerate(V_values):
         for algorithm_idx, algorithm in enumerate(algorithms):
-            joint_isi_per_algorithm_violations_expC[algorithm][T_idx, :] = \
-                results_violations[T]['different_lambda_min'][algorithm]['joint_isi']
-            joint_isi_per_algorithm_violations_expD[algorithm][T_idx, :] = \
-                results_violations[T]['different_lambda_max'][algorithm]['joint_isi']
+            joint_isi_per_algorithm_violations_expC[algorithm][V_idx, :] = \
+                results_violations[V]['different_lambda_min'][algorithm]['joint_isi']
+            joint_isi_per_algorithm_violations_expD[algorithm][V_idx, :] = \
+                results_violations[V]['different_lambda_max'][algorithm]['joint_isi']
 
     # label
-    T_labels = [100, 1000, 10000, 100000, 1000000]
-    T_label_values = [f'${T_value}$' for T_value in T_labels]
+    V_labels = [100, 1000, 10000, 100000, 1000000]
+    V_label_values = [f'${V_value}$' for V_value in V_labels]
 
     # plot JISI for violations using true and estimated covariance matrices in one figure
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(9, 2.5))
@@ -310,13 +169,13 @@ def plot_results_for_different_samples(folder, T_values, n_montecarlo, save=Fals
     # Experiment C
     axes[0].axhline(y=0.05, color='tab:gray', linestyle=':', linewidth=1.1)
     for (idx, algorithm) in enumerate(algorithms):
-        axes[0].errorbar(T_values,
+        axes[0].errorbar(V_values,
                          np.mean(joint_isi_per_algorithm_violations_expC[algorithm], axis=1),
                          np.std(joint_isi_per_algorithm_violations_expC[algorithm], axis=1),
                          color=colors[idx], linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1,
                          label=f'{algorithm}')
     axes[0].set_xscale('log')
-    axes[0].set_xticks(T_labels, T_label_values, fontsize=12)
+    axes[0].set_xticks(V_labels, V_label_values, fontsize=12)
     axes[0].set_xlabel(r'number of samples $V$ \\ \\ (a) Experiment C', fontsize=12)
     axes[0].set_ylim([-0.05, 1.05])
     axes[0].set_yticks([0, 0.5, 1])
@@ -326,13 +185,13 @@ def plot_results_for_different_samples(folder, T_values, n_montecarlo, save=Fals
     # Experiment D
     axes[1].axhline(y=0.05, color='tab:gray', linestyle=':', linewidth=1.1)
     for (idx, algorithm) in enumerate(algorithms):
-        axes[1].errorbar(T_values,
+        axes[1].errorbar(V_values,
                          np.mean(joint_isi_per_algorithm_violations_expD[algorithm], axis=1),
                          np.std(joint_isi_per_algorithm_violations_expD[algorithm], axis=1),
                          color=colors[idx], linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1,
                          label=f'{algorithm}')
     axes[1].set_xscale('log')
-    axes[1].set_xticks(T_labels, T_label_values, fontsize=12)
+    axes[1].set_xticks(V_labels, V_label_values, fontsize=12)
     axes[1].set_xlabel(r'number of samples $V$ \\ \\ (b) Experiment D', fontsize=12)
     axes[1].set_ylim([-0.05, 1.05])
     axes[1].set_yticks([0, 0.5, 1])
@@ -343,9 +202,9 @@ def plot_results_for_different_samples(folder, T_values, n_montecarlo, save=Fals
     if save:
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.2)
-        matplot2tikz.save('joint_ISI_samples.tex', encoding='utf8', axis_width='7.5cm', axis_height='5cm',
+        matplot2tikz.save('joint_isi_samples.tex', encoding='utf8', axis_width='7.5cm', axis_height='5cm',
                           standalone=True)
-        plt.savefig(f'joint_ISI_samples.pdf')
+        plt.savefig(f'joint_isi_samples.pdf')
     else:
         plt.title(f'joint ISI for the different experiments')
         plt.tight_layout()

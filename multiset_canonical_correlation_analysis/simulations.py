@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import random_correlation
-from scipy.linalg import block_diag
+from scipy.linalg import sqrtm, block_diag
 from pathlib import Path
 
 from independent_vector_analysis.helpers_iva import _bss_isi
@@ -12,12 +12,12 @@ from .mcca import mcca
 import time
 
 
-def generate_datasets_from_covariance_matrices(scv_cov, T):
+def generate_datasets_from_covariance_matrices(scv_cov, V, orthogonal_A=False):
     # generate sources
     K, _, N = scv_cov.shape
-    S = np.zeros((N, T, K))
+    S = np.zeros((N, V, K))
     for n in range(N):
-        S_temp = MGGD_generation(T, cov=scv_cov[:, :, n])[0]
+        S_temp = MGGD_generation(V, cov=scv_cov[:, :, n])[0]
         # make sources zero-mean and unit-variance
         S_temp -= np.mean(S_temp, axis=1, keepdims=True)
         S_temp /= np.std(S_temp, axis=1, keepdims=True)
@@ -25,9 +25,13 @@ def generate_datasets_from_covariance_matrices(scv_cov, T):
 
     # generate mixing matrices
     A = np.random.randn(N, N, K)
+    if orthogonal_A:
+        # make sure A is orthogonal -> X will be white for infinite samples
+        for k in range(K):
+            A[:, :, k] = np.linalg.solve(sqrtm(A[:, :, k] @ A[:, :, k].T), A[:, :, k])
 
     # generate observed datasets
-    X = np.zeros((N, T, K))
+    X = np.zeros((N, V, K))
     for k in range(K):
         X[:, :, k] = A[:, :, k] @ S[:, :, k]
 
@@ -155,39 +159,12 @@ def scv_covs_with_rank_R(N, K, R, alpha, beta):
     return scv_cov
 
 
-def scv_covs_for_maxvar_minvar(N, K, alpha):
-    Lambda = np.zeros((N, K))
-    for n in range(N):
-        Lambda[n, -1] = alpha[n]
-        Lambda[n, :-1] = (K - alpha[n]) / (K - 1)
-    # create N random SCV covariance matrices
-    scv_cov = np.zeros((K, K, N))
-    for n in range(N):
-        scv_cov[:, :, n] = random_correlation.rvs(Lambda[n, :])
-
-    # # this is to check if eigenvalues of minvar are the same
-    # A = np.linalg.eigh(scv_cov[:, :, 2])[1]
-    # B = np.linalg.eigh(scv_cov[:, :, 1])[1]
-    # sign_vector = np.isclose(A[:, 0], B[:, 0])
-    # sign_vector = sign_vector * 2 - 1
-    # calculate_matrix_ranks(np.diag(sign_vector) @ A[:, 1:], B[:, 1:])
-    #
-    # # this is to check if eigenvalues of maxvar are the same
-    # A = np.linalg.eigh(scv_cov[:, :, 2])[1]
-    # B = np.linalg.eigh(scv_cov[:, :, 1])[1]
-    # sign_vector = np.isclose(A[:, -1], B[:, -1])
-    # sign_vector = sign_vector * 2 - 1
-    # calculate_matrix_ranks(np.diag(sign_vector) @ A[:, :-1], B[:, :-1])
-
-    return scv_cov
-
-
-def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, use_true_C_xx):
-    folder = f'K_{K}_T_{T}'
+def save_joint_isi_and_runtime_results(N, K, V, n_montecarlo, scenarios, use_true_C_xx):
+    folder = f'K_{K}_V_{V}'
     if use_true_C_xx:
         folder += '_true_C'
 
-    algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
+    algorithms = ['sumcor', 'maxvar', 'minvar', 'genvar', 'ssqcor']
 
     for run in range(n_montecarlo):
         print(f'Start run {run}...')
@@ -214,7 +191,7 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, use_tru
             else:
                 raise AssertionError(f"scenario '{scenario}' does not exist")
 
-            X, A, S = generate_datasets_from_covariance_matrices(scv_cov, T)
+            X, A, S = generate_datasets_from_covariance_matrices(scv_cov, V)
 
             if use_true_C_xx:
                 # true joint SCV covariance matrix
@@ -234,7 +211,6 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, use_tru
                 C_xx = None
 
             for algorithm_idx, algorithm in enumerate(algorithms):
-                # if algorithm is not 'ivag':
                 t_start = time.process_time()
                 M = mcca(X, algorithm, C_xx=C_xx)[0]
                 W = np.moveaxis(M, [0, 1, 2], [1, 0, 2])
@@ -245,12 +221,8 @@ def save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, use_tru
                 np.save(filename, {'joint_isi': _bss_isi(W, A)[1], 'runtime': t_end - t_start})
 
 
-def save_violation_results_from_multiple_files_in_one_file(folder, n_montecarlo):
-    scenarios = ['same_eigenvalues_same_eigenvectors',
-                 'same_eigenvalues_different_eigenvectors',
-                 'different_lambda_max', 'different_lambda_min']
-
-    algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
+def save_violation_results_from_multiple_files_in_one_file(folder, scenarios, n_montecarlo):
+    algorithms = ['sumcor', 'maxvar', 'minvar', 'genvar', 'ssqcor']
 
     results = {}
     for scenario_idx, scenario in enumerate(scenarios):
@@ -274,7 +246,7 @@ def save_violation_results_from_multiple_files_in_one_file(folder, n_montecarlo)
 def save_different_R_results_from_multiple_files_in_one_file(folder, n_montecarlo):
     scenarios = [f'rank_{R}' for R in [1, 2, 5, 10, 20, 50]]
 
-    algorithms = ['sumcor', 'maxvar', 'minvar', 'ssqcor', 'genvar']
+    algorithms = ['sumcor', 'maxvar', 'minvar', 'genvar', 'ssqcor']
 
     results = {}
     for scenario_idx, scenario in enumerate(scenarios):

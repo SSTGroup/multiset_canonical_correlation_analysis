@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import pearsonr
 
 
 def vectorize_datasets(X):
@@ -82,13 +83,13 @@ def calculate_avg_abs_pearson_correlation_coefficient(S_1, S_2):
         raise AssertionError("'S_1' and 'S_2' must have the same shape.")
 
     pearsoncoefficient = np.zeros((N, N))
-    for col_idx in range(N):
+    for n in range(N):
         for m in range(N):
             # avg abs correlation coefficient for nth and mth source component in all K datasets
-            pearsoncoefficient[col_idx, m] = 0
+            pearsoncoefficient[n, m] = 0
             for k in range(K):
-                pearsoncoefficient[col_idx, m] += np.abs(pearsonr(S_1[col_idx, :, k], S_2[m, :, k]).statistic)
-            pearsoncoefficient[col_idx, m] /= K
+                pearsoncoefficient[n, m] += np.abs(pearsonr(S_1[n, :, k], S_2[m, :, k]).statistic)
+            pearsoncoefficient[n, m] /= K
 
     # find the indices of the best permutation
     permutation = np.argmax(pearsoncoefficient, axis=1)
