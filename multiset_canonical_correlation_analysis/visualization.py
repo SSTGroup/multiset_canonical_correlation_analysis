@@ -6,136 +6,21 @@ import pandas as pd
 from .helpers import calculate_eigenvalues_from_ccv_covariance_matrices
 
 
-def plot_results_with_errorbars_for_violations(K, n_montecarlo, save=False):
-    results = np.load(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/violations_K_{K}.npy'),
-                      allow_pickle=True).item()
-
-    scenarios = list(results.keys())
-    scenario_labels = [r'same $\mathbf{\lambda}$ (rank $1$)', r'same $\mathbf{\lambda}$ (rank $K$)',
-                       'different $\lambda_{\mathrm{max}}$', 'different $\lambda_{\mathrm{min}}$']
-    n_scenarios = len(scenario_labels)
-
-    algorithms = list(results[scenarios[0]].keys())
-
-    # store results for each algorithm
-    joint_isi_per_algorithm = {algorithm: np.zeros((n_scenarios, n_montecarlo)) for algorithm in algorithms}
-    runtime_per_algorithm = {algorithm: np.zeros((n_scenarios, n_montecarlo)) for algorithm in algorithms}
-    for scenario_idx, scenario in enumerate(scenarios):
-        for algorithm_idx, algorithm in enumerate(algorithms):
-            joint_isi_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['joint_isi']
-            runtime_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['runtime']
-
-    plt.figure(figsize=(5, 3.5))
-    for algorithm in algorithms:
-        plt.errorbar(np.arange(n_scenarios), np.mean(joint_isi_per_algorithm[algorithm], axis=1),
-                     np.std(joint_isi_per_algorithm[algorithm], axis=1),
-                     linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
-    plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12, rotation=90)
-    plt.ylim([-0.01, 1.01])
-    plt.yticks(np.arange(0, 1.01, 0.2), fontsize=12)
-    plt.ylabel('jISI', fontsize=12)
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-
-    if save:
-        plt.tight_layout()
-        plt.savefig(f'joint_ISI_K_{K}.pdf')
-    else:
-        plt.title(f'joint ISI for the different experiments (K={K})')
-        plt.tight_layout()
-
-    plt.figure(figsize=(5, 3.5))
-    for algorithm in algorithms:
-        plt.errorbar(np.arange(n_scenarios), np.mean(runtime_per_algorithm[algorithm], axis=1),
-                     np.std(runtime_per_algorithm[algorithm], axis=1),
-                     linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
-    plt.xticks(np.arange(n_scenarios), scenario_labels, fontsize=12, rotation=90)
-    plt.ylim([-2, 202])
-    plt.yticks(np.arange(0, 200.1, 50), fontsize=12)
-    plt.ylabel('Runtime in seconds', fontsize=12)
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-
-    if save:
-        plt.tight_layout()
-        plt.savefig(f'runtime_K_{K}.pdf')
-    else:
-        plt.title(f'runtime in seconds for the different experiments (K={K})')
-        plt.tight_layout()
-        plt.show()
-
-
-def plot_results_with_errorbars_for_different_R(K, n_montecarlo, save=False):
-    results = np.load(Path(Path(__file__).parent.parent, f'simulation_results/K_{K}/different_R_K_{K}.npy'),
-                      allow_pickle=True).item()
-
-    scenarios = list(results.keys())
-    scenario_labels = [int(scenario[5:]) for scenario in scenarios]
-    n_scenarios = len(scenarios)
-
-    algorithms = list(results[scenarios[0]].keys())
-
-    joint_isi_per_algorithm = {algorithm: np.zeros((n_scenarios, n_montecarlo)) for algorithm in algorithms}
-    runtime_per_algorithm = {algorithm: np.zeros((n_scenarios, n_montecarlo)) for algorithm in algorithms}
-    for scenario_idx, scenario in enumerate(scenarios):
-        for algorithm_idx, algorithm in enumerate(algorithms):
-            joint_isi_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['joint_isi']
-            runtime_per_algorithm[algorithm][scenario_idx, :] = results[scenario][algorithm]['runtime']
-
-    plt.figure(figsize=(5, 2.5))
-
-    for algorithm in algorithms:
-        plt.errorbar(scenario_labels, np.mean(joint_isi_per_algorithm[algorithm], axis=1),
-                     np.std(joint_isi_per_algorithm[algorithm], axis=1),
-                     linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
-    plt.xticks(scenario_labels, scenario_labels, fontsize=12)
-    plt.xlabel(r'rank $R$', fontsize=12)
-    plt.ylim([-0.006, .606])
-    plt.yticks(np.arange(0, 0.61, 0.2), fontsize=12)
-    plt.ylabel('jISI', fontsize=12)
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-
-    if save:
-        plt.tight_layout()
-        plt.savefig(f'joint_ISI_K_{K}_different_R.pdf')
-    else:
-        plt.title(f'joint ISI for the different experiments (K={K})')
-        plt.tight_layout()
-
-    plt.figure(figsize=(5, 2.5))
-
-    for algorithm in algorithms:
-        plt.errorbar(scenario_labels, np.mean(runtime_per_algorithm[algorithm], axis=1),
-                     np.std(runtime_per_algorithm[algorithm], axis=1),
-                     linestyle=':', fmt='D', markersize=3, capsize=2, lw=1.1, label=f'{algorithm}')
-    plt.xticks(scenario_labels, scenario_labels, fontsize=12)
-    plt.xlabel(r'rank $R$', fontsize=12)
-    plt.ylim([-0.003, 0.303])
-    plt.yticks(np.arange(0, 0.31, 0.1), fontsize=12)
-    # plt.ylim([-0.25, 20.2])
-    # plt.yticks(np.arange(0, 20.1, 5), fontsize=12)
-    plt.ylabel('Runtime in seconds', fontsize=12)
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-
-    if save:
-        plt.tight_layout()
-        plt.savefig(f'runtime_K_{K}_different_R.pdf')
-    else:
-        plt.title(f'runtime in seconds for the different experiments (K={K})')
-        plt.tight_layout()
-        plt.show()
-
-
-def plot_eigenvalues(scv_cov, title=None, show=True):
-    plt.figure(figsize=(2.5, 2))
+def plot_eigenvalues(scv_cov, title=None, show=True, filename=None):
     Lambda = calculate_eigenvalues_from_ccv_covariance_matrices(scv_cov)
     Lambda = Lambda[:, ::-1]  # sort descending
 
+    plt.figure(figsize=(6, 3.5))
     for n in range(scv_cov.shape[2]):
         plt.plot(np.arange(1, Lambda.shape[1] + 1), Lambda[n, :], 'D:', markersize=2.5, lw=1,
-                 label=r'$\mathbf{\lambda}_' + f'{n + 1}' + r'$')
+                 label=r'$\mathbf{\lambda}_{' + f'{n + 1}' + r'}$')
+        plt.xticks(np.arange(0, Lambda.shape[1] + 1, 5))
     plt.legend()
-    if title is not None:
-        plt.title(title)
+
+    plt.title(title)
     plt.tight_layout()
+    if filename is not None:
+        plt.savefig(filename, dpi=500)
     if show:
         plt.show()
 
