@@ -221,11 +221,7 @@ def save_joint_isi_and_runtime_results(N, K, V, n_montecarlo, scenarios, use_tru
                 np.save(filename, {'joint_isi': _bss_isi(W, A)[1], 'runtime': t_end - t_start})
 
 
-def save_violation_results_from_multiple_files_in_one_file(folder, n_montecarlo):
-    scenarios = ['same_eigenvalues_same_eigenvectors',
-                 'same_eigenvalues_different_eigenvectors',
-                 'different_lambda_max', 'different_lambda_min']
-
+def save_violation_results_from_multiple_files_in_one_file(folder, scenarios, n_montecarlo):
     algorithms = ['sumcor', 'maxvar', 'minvar', 'genvar', 'ssqcor']
 
     results = {}
