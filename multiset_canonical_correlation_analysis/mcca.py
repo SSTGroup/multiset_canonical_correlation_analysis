@@ -5,7 +5,7 @@ from scipy.linalg import sqrtm, block_diag
 from .helpers import vectorize_datasets, check_zero_mean, make_ccvs_unit_variance
 
 
-def mcca(X, algorithm='genvar', max_iter=1000, eps=0.0001, verbose=False, C_xx=None):
+def mcca(X, algorithm='genvar', max_iter=1000, eps=0.0001, verbose=False, C_xx=None, W_init=None):
     """
     Perform mCCA on datasets X^[k].
 
@@ -51,9 +51,9 @@ def mcca(X, algorithm='genvar', max_iter=1000, eps=0.0001, verbose=False, C_xx=N
     elif algorithm == 'minvar':
         M, Epsilon = mcca_maxvar_minvar_kettenring(X, 'minvar', C_xx)
     elif algorithm == 'ssqcor':
-        M, Epsilon = mcca_ssqcor_genvar_kettenring(X, 'ssqcor', max_iter, eps, verbose, C_xx)
+        M, Epsilon = mcca_ssqcor_genvar_kettenring(X, 'ssqcor', max_iter, eps, verbose, C_xx, W_init)
     elif algorithm == 'genvar':
-        M, Epsilon = mcca_ssqcor_genvar_kettenring(X, 'genvar', max_iter, eps, verbose, C_xx)
+        M, Epsilon = mcca_ssqcor_genvar_kettenring(X, 'genvar', max_iter, eps, verbose, C_xx, W_init)
     else:
         raise AssertionError("'algorithm' must be 'sumcor', 'maxvar', 'minvar', 'ssqcor', or 'genvar'.")
 
@@ -234,7 +234,8 @@ def mcca_maxvar_minvar_kettenring(X, algorithm, C_xx=None):
     return M, Epsilon
 
 
-def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbose=False, C_xx=None):
+def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbose=False, C_xx=None,
+                                  W_init=None):
     """
     Implementation of mCCA-ssqcor and mCCA-genvar according to
     Kettenring, J. R. (1971). Canonical analysis of several sets of variables. Biometrika, 58(3), 433-451.
@@ -297,8 +298,17 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
 
         C_yy = np.linalg.inv(sqrtm(D_xx)) @ C_xx @ np.linalg.inv(sqrtm(D_xx))
 
-    # initialize transformation matrices (that would transform Y)
-    V = 1 / np.sqrt(N) * np.ones((N, N, K))
+    if W_init is not None:  # given W_init is for X, but calculations are for Y -> multiply by whitening matrix
+        V = np.zeros((N, N, K))
+        for k in range(K):
+            # ddof=0 means dividing by T, not T-1
+            V[:, :, k] = sqrtm(C_xx[k * N:(k + 1) * N, k * N:(k + 1) * N]) @ W_init[:, :, k].T
+        pass
+    else:
+        # initialize orthogonal transformation matrices (that would transform Y)
+        V = np.random.randn(N, N, K)
+        for k in range(K):
+            V[:, :, k] = np.linalg.solve(sqrtm(V[:, :, k] @ V[:, :, k].T), V[:, :, k])
 
     for n in range(N):
         theta_n = np.zeros((K, max_iter))
@@ -342,9 +352,14 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
                 theta_n[k, iter] = eigval[0]
 
                 if algorithm == 'genvar':
-                    # update R_n
+                    # update R_n (K x K covariance matrix of nth CCV)
                     V_n = block_diag(*V[:, n, :].T).T
                     R_n = V_n.T @ C_yy @ V_n  # K x K covariance matrix of nth CCV
+
+                    # this would be much slower
+                    # for k1 in range(K):
+                    #     for k2 in range(K):
+                    #         R_n[k1, k2] = V[:, n, k1].T @ C_yy[k1 * N: (k1 + 1) * N, k2 * N: (k2 + 1) * N] @ V[:, n, k2]
 
             if np.sum(np.abs(theta_n[:, iter] - theta_n[:, iter - 1])) < eps:  # eq. (12.9)
                 if verbose:
@@ -362,3 +377,4 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
         Epsilon[:, :, k] = M[:, :, k].T @ X[:, :, k]
 
     return M, Epsilon
+
