@@ -7,7 +7,7 @@ def readme():
 
 
 setup(name='multiset_canonical_correlation_analysis',
-      version='0.0.1',
+      version='0.0.2',
       description='Multiset Canonical Correlation Analysis (mCCA) implementation',
       long_description=readme(),
       long_description_content_type='text/markdown',
