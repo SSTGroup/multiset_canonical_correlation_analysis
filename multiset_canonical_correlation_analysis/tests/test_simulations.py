@@ -95,7 +95,7 @@ def test_one_run_all_algorithms():
 
 def test_save_paper_results():
     N = 5  # SCVs
-    T = 10  # samples
+    V = 1000  # samples
     n_montecarlo = 50  # runs
 
     K = 100  # datasets
@@ -106,4 +106,4 @@ def test_save_paper_results():
                  'same_eigenvalues_different_eigenvectors',
                  'different_lambda_max', 'different_lambda_min']
     scenarios += [f'rank_{R}' for R in [1, 2, 5, 10, 20, 50]]
-    simulations.save_joint_isi_and_runtime_results(N, K, T, n_montecarlo, scenarios, use_true_C_xx)
+    simulations.save_joint_isi_and_runtime_results(N, K, V, n_montecarlo, scenarios, use_true_C_xx)

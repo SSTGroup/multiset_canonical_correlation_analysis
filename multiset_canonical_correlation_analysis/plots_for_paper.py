@@ -51,7 +51,7 @@ def plot_identification_conditions_for_paper(folder, n_montecarlo, save=False):
     plt.tight_layout()
     plt.subplots_adjust(wspace=0.2)
     if save:
-        matplot2tikz.save(f'jiont_isi.tex', encoding='utf8', axis_width='7.5cm', axis_height='5cm',
+        matplot2tikz.save(f'joint_isi.tex', encoding='utf8', axis_width='3.5cm', axis_height='5cm',
                           standalone=True)
         plt.savefig(f'joint_isi.pdf')
     else:
