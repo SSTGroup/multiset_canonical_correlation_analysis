@@ -305,10 +305,8 @@ def mcca_ssqcor_genvar_kettenring(X, algorithm, max_iter=1000, eps=0.0001, verbo
             V[:, :, k] = sqrtm(C_xx[k * N:(k + 1) * N, k * N:(k + 1) * N]) @ W_init[:, :, k].T
         pass
     else:
-        # initialize orthogonal transformation matrices (that would transform Y)
-        V = np.random.randn(N, N, K)
-        for k in range(K):
-            V[:, :, k] = np.linalg.solve(sqrtm(V[:, :, k] @ V[:, :, k].T), V[:, :, k])
+        # initialize transformation matrices (that would transform Y)
+        V = 1 / np.sqrt(N) * np.ones((N, N, K))
 
     for n in range(N):
         theta_n = np.zeros((K, max_iter))
